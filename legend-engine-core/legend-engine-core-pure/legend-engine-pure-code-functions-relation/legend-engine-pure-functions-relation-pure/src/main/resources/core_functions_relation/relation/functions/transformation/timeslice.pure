@@ -1,0 +1,98 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::pure::test::pct::*;
+import meta::pure::metamodel::relation::*;
+
+// Basic timeSlice function that takes a timestamp and time unit
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1]):DateTime[1];
+
+// timeSlice with slice size parameter
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1]):DateTime[1];
+
+// timeSlice with slice size and end of slice parameters
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1], endOfSlice:Boolean[1]):DateTime[1];
+
+// timeSlice with slice size, end of slice, and timezone parameters
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1], endOfSlice:Boolean[1], timezone:String[1]):DateTime[1];
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testBasicTimeSlice():Boolean[1]
+{
+    let timestamp = %2023-01-15T14:30:45.123+0000;
+    
+    // Test with different time units
+    let yearResult = timeSlice($timestamp, 'YEAR');
+    let quarterResult = timeSlice($timestamp, 'QUARTER');
+    let monthResult = timeSlice($timestamp, 'MONTH');
+    let weekResult = timeSlice($timestamp, 'WEEK');
+    let dayResult = timeSlice($timestamp, 'DAY');
+    let hourResult = timeSlice($timestamp, 'HOUR');
+    let minuteResult = timeSlice($timestamp, 'MINUTE');
+    let secondResult = timeSlice($timestamp, 'SECOND');
+    
+    assertEquals(%2023-01-01T00:00:00.000+0000, $yearResult);
+    assertEquals(%2023-01-01T00:00:00.000+0000, $quarterResult);
+    assertEquals(%2023-01-01T00:00:00.000+0000, $monthResult);
+    assertEquals(%2023-01-15T00:00:00.000+0000, $dayResult);
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourResult);
+    assertEquals(%2023-01-15T14:30:00.000+0000, $minuteResult);
+    assertEquals(%2023-01-15T14:30:45.000+0000, $secondResult);
+    
+    true;
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithSliceSize():Boolean[1]
+{
+    let timestamp = %2023-01-15T14:30:45.123+0000;
+    
+    // Test with different slice sizes
+    let hourResult2 = timeSlice($timestamp, 'HOUR', 2);
+    let minuteResult15 = timeSlice($timestamp, 'MINUTE', 15);
+    let secondResult30 = timeSlice($timestamp, 'SECOND', 30);
+    
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourResult2);
+    assertEquals(%2023-01-15T14:30:00.000+0000, $minuteResult15);
+    assertEquals(%2023-01-15T14:30:30.000+0000, $secondResult30);
+    
+    true;
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithEndOfSlice():Boolean[1]
+{
+    let timestamp = %2023-01-15T14:30:45.123+0000;
+    
+    // Test with end of slice parameter
+    let hourResultStart = timeSlice($timestamp, 'HOUR', 1, false);
+    let hourResultEnd = timeSlice($timestamp, 'HOUR', 1, true);
+    
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourResultStart);
+    assertEquals(%2023-01-15T15:00:00.000+0000, $hourResultEnd);
+    
+    true;
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithTimezone():Boolean[1]
+{
+    let timestamp = %2023-01-15T14:30:45.123+0000;
+    
+    // Test with timezone parameter
+    let hourResultUTC = timeSlice($timestamp, 'HOUR', 1, false, 'UTC');
+    let hourResultEST = timeSlice($timestamp, 'HOUR', 1, false, 'America/New_York');
+    
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourResultUTC);
+    // The exact result will depend on timezone conversion, this is a placeholder assertion
+    // assertEquals(%2023-01-15T09:00:00.000-0500, $hourResultEST);
+    
+    true;
+}

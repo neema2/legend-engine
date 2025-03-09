@@ -222,6 +222,10 @@ function <<access.private>> meta::relational::functions::sqlQueryToString::duckD
     dynaFnToSql('year',                   $allStates,            ^ToSql(format='year(%s)')),
     dynaFnToSql('jaroWinklerSimilarity',  $allStates,            ^ToSql(format='jaro_winkler_similarity(%s, %s)')),
     dynaFnToSql('levenshteinDistance',    $allStates,            ^ToSql(format='levenshtein(%s, %s)')),
+    dynaFnToSql('timeSlice',              $allStates,            ^ToSql(format='date_bin(%s, %s)', transform={p:String[2] | 'interval \'' + $p->at(1) + '\', ' + $p->at(0)})),
+    dynaFnToSql('timeSlice',              $allStates,            ^ToSql(format='date_bin(%s, %s, %s)', transform={p:String[3] | 'interval \'' + $p->at(1) + ' ' + $p->at(2) + '\', ' + $p->at(0)})),
+    dynaFnToSql('timeSlice',              $allStates,            ^ToSql(format='date_bin(%s, %s, %s)', transform={p:String[4] | 'interval \'' + $p->at(1) + ' ' + $p->at(2) + '\', ' + $p->at(0) + if($p->at(3) == 'true', | ', ' + $p->at(0), | '')})),
+    dynaFnToSql('timeSlice',              $allStates,            ^ToSql(format='date_bin(%s, %s, %s)', transform={p:String[5] | 'interval \'' + $p->at(1) + ' ' + $p->at(2) + '\', ' + $p->at(0) + if($p->at(3) == 'true', | ', ' + $p->at(0), | '') + ', \'' + $p->at(4) + '\''})),
     dynaFnToSql('varianceSample',         $allStates,            ^ToSql(format='%s', transform={p:String[*] | if($p->size() == 1,|'var_samp('+$p->toOne()+')',|'list_var_samp('+$p->joinStrings('[',',',']')+')'); })),
     dynaFnToSql('variancePopulation',     $allStates,            ^ToSql(format='%s', transform={p:String[*] | if($p->size() == 1,|'var_pop('+$p->toOne()+')',|'list_var_pop('+$p->joinStrings('[',',',']')+')'); })),
     dynaFnToSql('variance',               $allStates,            ^ToSql(format='%s', transform={p:String[*]| if ($p->last() == 'true', | 'list_var_samp', |'list_var_pop') + '('+$p->init()->joinStrings('[', ',', ']')+')'}))
