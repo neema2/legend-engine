@@ -1,0 +1,67 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::pure::test::pct::*;
+import meta::pure::metamodel::relation::*;
+
+/**
+ * Perform a LATERAL join between two relations.
+ * A LATERAL join allows the right-hand side of the join to reference columns from the left-hand side.
+ * This is particularly useful for flattening semi-structured data.
+ *
+ * @param rel1 - The left relation
+ * @param rel2 - The right relation
+ * @param joinKind - The kind of join (LEFT or INNER)
+ * @param f - The join condition function
+ * @return A new relation containing the joined data
+ */
+native function <<PCT.function>> meta::pure::functions::relation::lateralJoin<T,V>(rel1:Relation<T>[1], rel2:Relation<V>[1], joinKind:JoinKind[1], f:Function<{T[1],V[1]->Boolean[1]}>[1]):Relation<T+V>[1];
+
+function <<PCT.test>> meta::pure::functions::relation::tests::lateralJoin::testSimpleLateralJoin<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+  let tds = #TDS
+              id, name, json_data
+              1, George, {"items": [{"id": 101, "value": "Item1"}, {"id": 102, "value": "Item2"}]}
+              2, Pierre, {"items": [{"id": 201, "value": "Item3"}]}
+              3, Sachin, {"items": []}
+            #;
+
+  let tds2 = #TDS
+              parent_id, item_id, item_value
+              1, 101, Item1
+              1, 102, Item2
+              2, 201, Item3
+            #;
+
+  let expr = {|$tds->lateralJoin($tds2, JoinKind.INNER, {x,y| $x.id == $y.parent_id})};
+  let res =  $f->eval($expr);
+
+  assertEquals( '#TDS\n'+
+                '   id,name,json_data,parent_id,item_id,item_value\n'+
+                '   1,George,{"items": [{"id": 101, "value": "Item1"}, {"id": 102, "value": "Item2"}]},1,101,Item1\n'+
+                '   1,George,{"items": [{"id": 101, "value": "Item1"}, {"id": 102, "value": "Item2"}]},1,102,Item2\n'+
+                '   2,Pierre,{"items": [{"id": 201, "value": "Item3"}]},2,201,Item3\n'+
+                '#', $res->sort([~id->ascending(),~item_id->ascending()])->toString());
+
+  let expr2 = {|$tds->lateralJoin($tds2, JoinKind.LEFT, {x,y| $x.id == $y.parent_id})};
+  let res2 =  $f->eval($expr2);
+
+  assertEquals( '#TDS\n'+
+                '   id,name,json_data,parent_id,item_id,item_value\n'+
+                '   1,George,{"items": [{"id": 101, "value": "Item1"}, {"id": 102, "value": "Item2"}]},1,101,Item1\n'+
+                '   1,George,{"items": [{"id": 101, "value": "Item1"}, {"id": 102, "value": "Item2"}]},1,102,Item2\n'+
+                '   2,Pierre,{"items": [{"id": 201, "value": "Item3"}]},2,201,Item3\n'+
+                '   3,Sachin,{"items": []},null,null,null\n'+
+                '#', $res2->sort([~id->ascending(),~item_id->ascending()])->toString());
+}
