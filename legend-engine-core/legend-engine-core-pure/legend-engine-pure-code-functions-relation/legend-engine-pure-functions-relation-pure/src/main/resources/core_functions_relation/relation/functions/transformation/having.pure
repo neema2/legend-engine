@@ -62,3 +62,144 @@ function <<PCT.test>> meta::pure::functions::relation::tests::having::testHaving
                 '   2,8200,2\n'+
                 '#', $res->sort(~grp->ascending())->toString());
 }
+
+function <<PCT.test>> meta::pure::functions::relation::tests::having::testHavingWithOrCondition<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                 id, grp, value
+                 1, 2, 5000
+                 2, 1, 4000
+                 3, 3, 3000
+                 4, 4, 1200
+                 5, 2, 3200
+                 6, 1, 4300
+             #;
+    
+    let expr = {|$tds->groupBy(~grp, ~[sum : x | $x.value : y | $y->sum(), count : x | $x.id : y | $y->count()])
+                   ->having({row|$row.sum > 7000 || $row.count > 1});};
+    let res =  $f->eval($expr);
+    
+    assertEquals('#TDS\n'+
+                '   grp,sum,count\n'+
+                '   1,8300,2\n'+
+                '   2,8200,2\n'+
+                '   3,3000,1\n'+
+                '#', $res->sort(~grp->ascending())->toString());
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::having::testHavingWithAverage<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                 id, grp, value
+                 1, 2, 5000
+                 2, 1, 4000
+                 3, 3, 3000
+                 4, 4, 1200
+                 5, 2, 3200
+                 6, 1, 4300
+             #;
+    
+    let expr = {|$tds->groupBy(~grp, ~[avg : x | $x.value : y | $y->average()])
+                   ->having({row|$row.avg > 3000});};
+    let res =  $f->eval($expr);
+    
+    assertEquals('#TDS\n'+
+                '   grp,avg\n'+
+                '   1,4150.0\n'+
+                '   2,4100.0\n'+
+                '#', $res->sort(~grp->ascending())->toString());
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::having::testHaving_MultipleExpressions<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let expr = {|
+        let t = #TDS
+                 id, grp, value
+                 1, 2, 5000
+                 2, 1, 4000
+                 3, 3, 3000
+                 4, 4, 1200
+                 5, 2, 3200
+                 6, 1, 4300
+             #;
+        $t->groupBy(~grp, ~[sum : x | $x.value : y | $y->sum(), count : x | $x.id : y | $y->count()])
+          ->having({row|$row.sum > 5000 && $row.count > 1});
+    };
+    let res =  $f->eval($expr);
+    
+    assertEquals('#TDS\n'+
+                '   grp,sum,count\n'+
+                '   1,8300,2\n'+
+                '   2,8200,2\n'+
+                '#', $res->sort(~grp->ascending())->toString());
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::having::testHavingWithMinMax<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                 id, grp, value
+                 1, 2, 5000
+                 2, 1, 4000
+                 3, 3, 3000
+                 4, 4, 1200
+                 5, 2, 3200
+                 6, 1, 4300
+             #;
+    
+    let expr = {|$tds->groupBy(~grp, ~[min : x | $x.value : y | $y->min(), max : x | $x.value : y | $y->max()])
+                   ->having({row|$row.max - $row.min > 1000});};
+    let res =  $f->eval($expr);
+    
+    assertEquals('#TDS\n'+
+                '   grp,min,max\n'+
+                '   1,4000,4300\n'+
+                '   2,3200,5000\n'+
+                '#', $res->sort(~grp->ascending())->toString());
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::having::testHavingWithComplexCondition<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                 id, grp, value
+                 1, 2, 5000
+                 2, 1, 4000
+                 3, 3, 3000
+                 4, 4, 1200
+                 5, 2, 3200
+                 6, 1, 4300
+             #;
+    
+    let expr = {|$tds->groupBy(~grp, ~[sum : x | $x.value : y | $y->sum(), count : x | $x.id : y | $y->count(), avg : x | $x.value : y | $y->average()])
+                   ->having({row|($row.sum > 5000 && $row.count > 1) || ($row.avg > 3000 && $row.count == 1)});};
+    let res =  $f->eval($expr);
+    
+    assertEquals('#TDS\n'+
+                '   grp,sum,count,avg\n'+
+                '   1,8300,2,4150.0\n'+
+                '   2,8200,2,4100.0\n'+
+                '   3,3000,1,3000.0\n'+
+                '#', $res->sort(~grp->ascending())->toString());
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::having::testHavingWithNullHandling<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                 id, grp, value
+                 1, 2, 5000
+                 2, 1, 4000
+                 3, 3, 3000
+                 4, null, 1200
+                 5, 2, 3200
+                 6, 1, 4300
+             #;
+    
+    let expr = {|$tds->groupBy(~grp, ~[sum : x | $x.value : y | $y->sum(), count : x | $x.id : y | $y->count()])
+                   ->having({row|$row.grp != null && $row.sum > 5000});};
+    let res =  $f->eval($expr);
+    
+    assertEquals('#TDS\n'+
+                '   grp,sum,count\n'+
+                '   1,8300,2\n'+
+                '   2,8200,2\n'+
+                '#', $res->sort(~grp->ascending())->toString());
+}
