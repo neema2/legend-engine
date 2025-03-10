@@ -37,6 +37,7 @@ import org.finos.legend.pure.runtime.java.extension.external.relation.interprete
 import org.finos.legend.pure.runtime.java.extension.external.relation.interpreted.natives.Extend;
 import org.finos.legend.pure.runtime.java.extension.external.relation.interpreted.natives.Filter;
 import org.finos.legend.pure.runtime.java.extension.external.relation.interpreted.natives.GroupBy;
+import org.finos.legend.pure.runtime.java.extension.external.relation.interpreted.natives.Having;
 import org.finos.legend.pure.runtime.java.extension.external.relation.interpreted.natives.First;
 import org.finos.legend.pure.runtime.java.extension.external.relation.interpreted.natives.NTile;
 import org.finos.legend.pure.runtime.java.extension.external.relation.interpreted.natives.Offset;
@@ -88,6 +89,7 @@ public class RelationExtensionInterpreted extends BaseInterpretedExtension
                 Tuples.pair("nth_Relation_1___Window_1__T_1__Integer_1__T_$0_1$_", Nth::new),
                 Tuples.pair("offset_Relation_1__T_1__Integer_1__T_$0_1$_", Offset::new),
                 Tuples.pair("filter_Relation_1__Function_1__Relation_1_", Filter::new),
+                Tuples.pair("having_Relation_1__Function_1__Relation_1_", Having::new),
                 Tuples.pair("map_Relation_1__Function_1__V_MANY_", Map::new),
                 Tuples.pair("size_Relation_1__Integer_1_", Size::new),
                 Tuples.pair("limit_Relation_1__Integer_1__Relation_1_", Limit::new),

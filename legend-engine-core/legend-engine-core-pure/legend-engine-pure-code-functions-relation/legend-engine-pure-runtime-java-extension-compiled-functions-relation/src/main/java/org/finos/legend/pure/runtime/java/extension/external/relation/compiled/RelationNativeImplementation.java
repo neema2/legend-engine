@@ -163,6 +163,21 @@ public class RelationNativeImplementation
         }
         return new TDSContainer((TestTDSCompiled) tds.drop(list), ps);
     }
+    
+    public static <T> Relation<? extends T> having(Relation<? extends T> relation, Function2<T, ExecutionSupport, Boolean> condition, ExecutionSupport es)
+    {
+        ProcessorSupport ps = ((CompiledExecutionSupport) es).getProcessorSupport();
+        TestTDSCompiled tds = RelationNativeImplementation.getTDS(relation);
+        MutableIntSet list = new IntHashSet();
+        for (int i = 0; i < tds.getRowCount(); i++)
+        {
+            if (!(boolean) condition.value(new RowContainer(tds, i), es))
+            {
+                list.add(i);
+            }
+        }
+        return new TDSContainer((TestTDSCompiled) tds.drop(list), ps);
+    }
 
     public static <T> T offset(Relation<? extends T> w, T r, long offset, ExecutionSupport es)
     {

@@ -69,6 +69,7 @@ public class RelationExtensionCompiled implements CompiledExtension
                 new ProjectRelation(),
                 new GroupBy(),
                 new GroupByArray(),
+                new Having(),
                 new Pivot(),
                 new PivotArray(),
                 new Slice(),

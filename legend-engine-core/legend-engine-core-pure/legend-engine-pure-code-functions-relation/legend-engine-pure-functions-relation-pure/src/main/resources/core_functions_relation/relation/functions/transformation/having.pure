@@ -1,0 +1,64 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::pure::test::pct::*;
+import meta::pure::metamodel::relation::*;
+
+native function <<PCT.function>> meta::pure::functions::relation::having<T,V>(rel:Relation<T>[1], condition:Function<{T[1]->Boolean[1]}>[1]):Relation<T>[1];
+
+function <<PCT.test>> meta::pure::functions::relation::tests::having::testSimpleHaving<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                 id, grp, value
+                 1, 2, 5000
+                 2, 1, 4000
+                 3, 3, 3000
+                 4, 4, 1200
+                 5, 2, 3200
+                 6, 1, 4300
+             #;
+    
+    let expr = {|$tds->groupBy(~grp, ~sum : x | $x.value : y | $y->sum())
+                   ->having({row|$row.sum > 5000});};
+    let res =  $f->eval($expr);
+    
+    assertEquals('#TDS\n'+
+                '   grp,sum\n'+
+                '   1,8300\n'+
+                '   2,8200\n'+
+                '#', $res->sort(~grp->ascending())->toString());
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::having::testHavingWithMultipleConditions<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                 id, grp, value
+                 1, 2, 5000
+                 2, 1, 4000
+                 3, 3, 3000
+                 4, 4, 1200
+                 5, 2, 3200
+                 6, 1, 4300
+             #;
+    
+    let expr = {|$tds->groupBy(~grp, ~[sum : x | $x.value : y | $y->sum(), count : x | $x.id : y | $y->count()])
+                   ->having({row|$row.sum > 5000 && $row.count > 1});};
+    let res =  $f->eval($expr);
+    
+    assertEquals('#TDS\n'+
+                '   grp,sum,count\n'+
+                '   1,8300,2\n'+
+                '   2,8200,2\n'+
+                '#', $res->sort(~grp->ascending())->toString());
+}
