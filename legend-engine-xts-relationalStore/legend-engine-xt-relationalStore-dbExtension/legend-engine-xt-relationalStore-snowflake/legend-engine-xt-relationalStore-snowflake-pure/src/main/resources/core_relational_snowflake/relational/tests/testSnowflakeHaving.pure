@@ -1,0 +1,141 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::relational::functions::sqlQueryToString::*;
+import meta::relational::functions::sqlQueryToString::snowflake::*;
+import meta::relational::metamodel::relation::*;
+import meta::relational::metamodel::*;
+import meta::relational::functions::pureToSqlQuery::*;
+import meta::pure::metamodel::relation::*;
+import meta::pure::functions::relation::*;
+import meta::pure::functions::collection::*;
+import meta::pure::functions::meta::*;
+import meta::pure::functions::lang::*;
+import meta::pure::functions::boolean::*;
+import meta::pure::functions::math::*;
+import meta::pure::tds::*;
+
+function <<test.Test>> meta::relational::tests::having::snowflake::testHavingWithGroupBy():Boolean[1]
+{
+   let tds = [
+      ^TDSRow(values = [^TDSString(value='A'), ^TDSInteger(value=1), ^TDSDecimal(value=10.5)]),
+      ^TDSRow(values = [^TDSString(value='A'), ^TDSInteger(value=2), ^TDSDecimal(value=20.5)]),
+      ^TDSRow(values = [^TDSString(value='B'), ^TDSInteger(value=3), ^TDSDecimal(value=30.5)]),
+      ^TDSRow(values = [^TDSString(value='B'), ^TDSInteger(value=4), ^TDSDecimal(value=40.5)]),
+      ^TDSRow(values = [^TDSString(value='C'), ^TDSInteger(value=5), ^TDSDecimal(value=50.5)])
+   ]->meta::pure::functions::relation::tdsRows();
+   
+   let cols = [
+      ^TDSColumn(name='group', offset=0, type=^meta::pure::metamodel::type::String()),
+      ^TDSColumn(name='id', offset=1, type=^meta::pure::metamodel::type::Integer()),
+      ^TDSColumn(name='value', offset=2, type=^meta::pure::metamodel::type::Float())
+   ];
+   
+   let relation = ^TabularDataSet(rows=$tds, columns=$cols);
+   
+   // Group by 'group' column and calculate sum of 'value' column
+   let grouped = $relation->groupBy([r | $r.getString('group')], [agg(r | $r.getFloat('value'), y | $y->sum())]);
+   
+   // Filter groups where sum of 'value' is greater than 50
+   let filtered = $grouped->having({r | $r.getFloat('value') > 50.0});
+   
+   // Convert to SQL
+   let sql = toSQLString(|$filtered, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+   
+   // Verify SQL contains HAVING clause with the correct condition
+   assertEquals(true, $sql->contains('having'));
+   assertEquals(true, $sql->contains('"value" > 50.0'));
+   
+   true;
+}
+
+function <<test.Test>> meta::relational::tests::having::snowflake::testHavingWithMultipleConditions():Boolean[1]
+{
+   let tds = [
+      ^TDSRow(values = [^TDSString(value='A'), ^TDSInteger(value=1), ^TDSDecimal(value=10.5)]),
+      ^TDSRow(values = [^TDSString(value='A'), ^TDSInteger(value=2), ^TDSDecimal(value=20.5)]),
+      ^TDSRow(values = [^TDSString(value='B'), ^TDSInteger(value=3), ^TDSDecimal(value=30.5)]),
+      ^TDSRow(values = [^TDSString(value='B'), ^TDSInteger(value=4), ^TDSDecimal(value=40.5)]),
+      ^TDSRow(values = [^TDSString(value='C'), ^TDSInteger(value=5), ^TDSDecimal(value=50.5)])
+   ]->meta::pure::functions::relation::tdsRows();
+   
+   let cols = [
+      ^TDSColumn(name='group', offset=0, type=^meta::pure::metamodel::type::String()),
+      ^TDSColumn(name='id', offset=1, type=^meta::pure::metamodel::type::Integer()),
+      ^TDSColumn(name='value', offset=2, type=^meta::pure::metamodel::type::Float())
+   ];
+   
+   let relation = ^TabularDataSet(rows=$tds, columns=$cols);
+   
+   // Group by 'group' column and calculate sum of 'value' and count of rows
+   let grouped = $relation->groupBy(
+      [r | $r.getString('group')], 
+      [agg(r | $r.getFloat('value'), y | $y->sum()), 
+       agg(r | $r.getInteger('id'), y | $y->count())]
+   );
+   
+   // Filter groups where sum of 'value' is greater than 30 AND count is greater than 1
+   let filtered = $grouped->having({r | $r.getFloat('value') > 30.0 && $r.getInteger('id_count') > 1});
+   
+   // Convert to SQL
+   let sql = toSQLString(|$filtered, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+   
+   // Verify SQL contains HAVING clause with the correct conditions
+   assertEquals(true, $sql->contains('having'));
+   assertEquals(true, $sql->contains('"value" > 30.0'));
+   assertEquals(true, $sql->contains('"id_count" > 1'));
+   assertEquals(true, $sql->contains('and'));
+   
+   true;
+}
+
+function <<test.Test>> meta::relational::tests::having::snowflake::testHavingWithAggregateFunctions():Boolean[1]
+{
+   let tds = [
+      ^TDSRow(values = [^TDSString(value='A'), ^TDSInteger(value=1), ^TDSDecimal(value=10.5)]),
+      ^TDSRow(values = [^TDSString(value='A'), ^TDSInteger(value=2), ^TDSDecimal(value=20.5)]),
+      ^TDSRow(values = [^TDSString(value='B'), ^TDSInteger(value=3), ^TDSDecimal(value=30.5)]),
+      ^TDSRow(values = [^TDSString(value='B'), ^TDSInteger(value=4), ^TDSDecimal(value=40.5)]),
+      ^TDSRow(values = [^TDSString(value='C'), ^TDSInteger(value=5), ^TDSDecimal(value=50.5)])
+   ]->meta::pure::functions::relation::tdsRows();
+   
+   let cols = [
+      ^TDSColumn(name='group', offset=0, type=^meta::pure::metamodel::type::String()),
+      ^TDSColumn(name='id', offset=1, type=^meta::pure::metamodel::type::Integer()),
+      ^TDSColumn(name='value', offset=2, type=^meta::pure::metamodel::type::Float())
+   ];
+   
+   let relation = ^TabularDataSet(rows=$tds, columns=$cols);
+   
+   // Group by 'group' column and calculate multiple aggregates
+   let grouped = $relation->groupBy(
+      [r | $r.getString('group')], 
+      [agg(r | $r.getFloat('value'), y | $y->sum()),
+       agg(r | $r.getFloat('value'), y | $y->average()),
+       agg(r | $r.getInteger('id'), y | $y->max())]
+   );
+   
+   // Filter groups where max id is greater than 3 and average value is greater than 25
+   let filtered = $grouped->having({r | $r.getInteger('id_max') > 3 && $r.getFloat('value_average') > 25.0});
+   
+   // Convert to SQL
+   let sql = toSQLString(|$filtered, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+   
+   // Verify SQL contains HAVING clause with the correct conditions
+   assertEquals(true, $sql->contains('having'));
+   assertEquals(true, $sql->contains('"id_max" > 3'));
+   assertEquals(true, $sql->contains('"value_average" > 25.0'));
+   
+   true;
+}
