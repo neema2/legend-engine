@@ -23,7 +23,11 @@ Class meta::pure::executionPlan::constraints::tests::Person
 Class meta::pure::executionPlan::constraints::tests::Firm
 [
  typeNotEmpty: $this.type->isNotEmpty(),
- duplicateEmployee: ($this.type->isNotEmpty() && ($this.type == FirmType.CORPORATION)) || $this.employees->isDistinct(#{Person{firstName,lastName}}#)
+ duplicateEmployee
+ (
+   ~function: ($this.type->isNotEmpty() && ($this.type == FirmType.CORPORATION)) || $this.employees->isDistinct(#{Person{firstName,lastName}}#)
+   ~message: $this.type == FirmType.CORPORATION->if(|'Constraint not applicable for CORPORATION firm type', |'Duplicate employees found with the same first name and last name in firm: ' + $this.legalName)
+ )
 ]
 {
   legalName: String[1];
