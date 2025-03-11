@@ -1,0 +1,44 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::relational::functions::snowflake::*;
+import meta::pure::functions::collection::*;
+import meta::pure::test::*;
+
+function <<test.Test>> meta::relational::functions::snowflake::tests::testMapInsert():Boolean[1]
+{
+  let map = newMap([pair('a', 1), pair('b', 2)]);
+  let updatedMap = mapInsert($map, 'c', 3);
+  
+  assertEquals(3, $updatedMap->keys()->size());
+  assertEquals(3, $updatedMap->get('c')->toOne());
+  assertEquals(1, $updatedMap->get('a')->toOne());
+  assertEquals(2, $updatedMap->get('b')->toOne());
+  
+  // Test overwriting existing key
+  let overwrittenMap = mapInsert($map, 'a', 10);
+  assertEquals(2, $overwrittenMap->keys()->size());
+  assertEquals(10, $overwrittenMap->get('a')->toOne());
+  assertEquals(2, $overwrittenMap->get('b')->toOne());
+  
+  true;
+}
+
+function <<test.Test>> meta::relational::functions::snowflake::tests::testMapInsertSQLString():Boolean[1]
+{
+  let sql = mapInsertSQLString('myMap', '\'key\'', '123');
+  assertEquals('MAP_INSERT(myMap, \'key\', 123)', $sql);
+  
+  true;
+}
