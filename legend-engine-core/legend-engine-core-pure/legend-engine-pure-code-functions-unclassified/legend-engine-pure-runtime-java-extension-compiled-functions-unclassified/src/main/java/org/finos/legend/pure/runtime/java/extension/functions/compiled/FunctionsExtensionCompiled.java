@@ -30,6 +30,7 @@ import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.d
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.date.DayOfYear;
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.date.Now;
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.date.Today;
+import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.date.Timeslice;
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.date.WeekOfYear;
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.hash.Hash;
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.io.ReadFile;
@@ -88,6 +89,7 @@ public class FunctionsExtensionCompiled extends AbstractCompiledExtension
                 new Now(),
                 new Today(),
                 new WeekOfYear(),
+                new Timeslice(),
 
                 //Hash
                 new Hash(),

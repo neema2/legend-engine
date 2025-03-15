@@ -1,0 +1,82 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::external::query::sql::metamodel::*;
+import meta::external::store::relational::sqlDialectTranslation::*;
+import meta::external::store::relational::sqlDialectTranslation::functionRegistry::*;
+import meta::external::store::relational::sqlDialectTranslation::sqlTyping::sqlTypes::*;
+
+Class meta::external::store::relational::sqlDialectTranslation::functionRegistry::extensionFunctions::temporal::Timeslice extends SqlFunction
+{
+    {doc.doc = 'Rounds a timestamp to the start of the specified interval.'}
+    
+    name: String[*] = ['timeslice'];
+    
+    variations: SqlFunctionVariation[1..*] = [
+        ^SqlFunctionVariation(
+            parameterTypes = [meta::external::store::relational::sqlDialectTranslation::sqlTyping::sqlTypes::Timestamp, meta::external::store::relational::sqlDialectTranslation::sqlTyping::sqlTypes::String],
+            returnType = meta::external::store::relational::sqlDialectTranslation::sqlTyping::sqlTypes::Timestamp,
+            documentation = 'Rounds a timestamp to the start of the specified interval.'
+        ),
+        ^SqlFunctionVariation(
+            parameterTypes = [meta::external::store::relational::sqlDialectTranslation::sqlTyping::sqlTypes::Timestamp, meta::external::store::relational::sqlDialectTranslation::sqlTyping::sqlTypes::String, meta::external::store::relational::sqlDialectTranslation::sqlTyping::sqlTypes::String],
+            returnType = meta::external::store::relational::sqlDialectTranslation::sqlTyping::sqlTypes::Timestamp,
+            documentation = 'Rounds a timestamp to the start of the specified interval with timezone.'
+        )
+    ];
+    
+    tests: SqlFunctionTest[1..*] = [
+        sqlFunctionTest(
+            ^FunctionCall(
+                name = ^QualifiedName(parts = ['timeslice']),
+                arguments = [
+                    ^LiteralValue(value = '2023-03-15 14:30:45.123', type = ^DataType(name = 'TIMESTAMP')),
+                    ^LiteralValue(value = 'DAY', type = ^DataType(name = 'VARCHAR'))
+                ]
+            ),
+            '2023-03-15 00:00:00.000'
+        ),
+        sqlFunctionTest(
+            ^FunctionCall(
+                name = ^QualifiedName(parts = ['timeslice']),
+                arguments = [
+                    ^LiteralValue(value = '2023-03-15 14:30:45.123', type = ^DataType(name = 'TIMESTAMP')),
+                    ^LiteralValue(value = 'HOUR', type = ^DataType(name = 'VARCHAR'))
+                ]
+            ),
+            '2023-03-15 14:00:00.000'
+        ),
+        sqlFunctionTest(
+            ^FunctionCall(
+                name = ^QualifiedName(parts = ['timeslice']),
+                arguments = [
+                    ^LiteralValue(value = '2023-03-15 14:30:45.123', type = ^DataType(name = 'TIMESTAMP')),
+                    ^LiteralValue(value = 'DAY', type = ^DataType(name = 'VARCHAR')),
+                    ^LiteralValue(value = 'America/New_York', type = ^DataType(name = 'VARCHAR'))
+                ]
+            ),
+            '2023-03-15 00:00:00.000'
+        )
+    ];
+    
+    documentation: String[0..1] = 'Rounds a timestamp to the start of the specified interval. Arguments: timestamp := the timestamp to round, interval := the interval to round to (YEAR, QUARTER, MONTH, DAY, HOUR, MINUTE, SECOND, MILLISECOND), timezone := optional timezone string (e.g., \'America/New_York\').';
+}
+
+function meta::external::store::relational::sqlDialectTranslation::functionRegistry::extensionFunctions::temporal::registerTimesliceFunction(registry: Registry[1]): Registry[1]
+{
+    $registry->addEntry(
+        meta::pure::functions::date::timeslice_DateTime_1__String_1__String_$0_1$__DateTime_1_,
+        Timeslice
+    );
+}

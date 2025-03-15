@@ -1,0 +1,59 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::external::query::sql::metamodel::*;
+import meta::external::store::relational::sqlDialectTranslation::*;
+import meta::external::store::relational::sqlDialectTranslation::duckdb::*;
+import meta::external::store::relational::sqlDialectTranslation::functionRegistry::extensionFunctions::temporal::*;
+
+function meta::external::store::relational::sqlDialectTranslation::duckdb::timesliceTranslator(functionCall: FunctionCall[1], params: Any[*], dialect: meta::external::store::relational::sqlDialectTranslation::SqlDialect[1]): String[1]
+{
+  let timestamp = $params->at(0)->cast(@String);
+  let interval = $params->at(1)->cast(@String);
+  
+  let intervalMapping = [
+    pair('YEAR', '1 year'),
+    pair('QUARTER', '3 months'),
+    pair('MONTH', '1 month'),
+    pair('DAY', '1 day'),
+    pair('HOUR', '1 hour'),
+    pair('MINUTE', '1 minute'),
+    pair('SECOND', '1 second'),
+    pair('MILLISECOND', '1 millisecond')
+  ]->newMap();
+  
+  let duckDBInterval = $intervalMapping->get($interval);
+  
+  if($params->size() == 3)
+  {
+    let timezone = $params->at(2)->cast(@String);
+    'time_bucket(' + $duckDBInterval + ', ' + $timestamp + ', ' + $timezone + ')';
+  }
+  else
+  {
+    'time_bucket(' + $duckDBInterval + ', ' + $timestamp + ')';
+  }
+}
+
+function meta::external::store::relational::sqlDialectTranslation::duckdb::registerTimesliceTranslator(): TranslationContext[1]
+{
+  ^TranslationContext(
+    translationFunctions = [
+      pair(
+        meta::external::store::relational::sqlDialectTranslation::functionRegistry::extensionFunctions::temporal::Timeslice,
+        timesliceTranslator_FunctionCall_1__Any_MANY__SqlDialect_1__String_1_
+      )
+    ]->newMap()
+  );
+}
