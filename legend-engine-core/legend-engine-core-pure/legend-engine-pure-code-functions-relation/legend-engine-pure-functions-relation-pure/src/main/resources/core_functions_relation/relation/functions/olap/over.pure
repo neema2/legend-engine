@@ -98,3 +98,107 @@ function
 {
   over([],$sortInfo,$frame)
 }
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::over<T>(cols:String[*], sortInfo:SortInfo<(?:?)⊆T>[*], frameType:String[1], frameStart:Any[1], frameEnd:Any[1]):_Window<T>[1]
+{
+  let frame = if($frameType == 'ROWS',
+                | processRowsFrame($frameStart, $frameEnd),
+                | processRangeFrame($frameStart, $frameEnd)
+              );
+  ^_Window<T>
+  (
+    partition=$cols,
+    sortInfo=$sortInfo,
+    frame=$frame
+  );
+}
+
+function
+    <<access.private>>
+    meta::pure::functions::relation::processRowsFrame(frameStart:Any[1], frameEnd:Any[1]):Rows[1]
+{
+  if($frameStart == 'UNBOUNDED PRECEDING',
+    | if($frameEnd == 'UNBOUNDED FOLLOWING',
+        | rows(unbounded(), unbounded()),
+        | if($frameEnd == 'CURRENT ROW',
+            | rows(unbounded(), 0),
+            | rows(unbounded(), $frameEnd->toInteger())
+          )
+      ),
+    | if($frameStart == 'CURRENT ROW',
+        | if($frameEnd == 'UNBOUNDED FOLLOWING',
+            | rows(0, unbounded()),
+            | if($frameEnd == 'CURRENT ROW',
+                | rows(0, 0),
+                | rows(0, $frameEnd->toInteger())
+              )
+          ),
+        | if($frameEnd == 'UNBOUNDED FOLLOWING',
+            | rows($frameStart->toInteger(), unbounded()),
+            | if($frameEnd == 'CURRENT ROW',
+                | rows($frameStart->toInteger(), 0),
+                | rows($frameStart->toInteger(), $frameEnd->toInteger())
+              )
+          )
+      )
+  );
+}
+
+function
+    <<access.private>>
+    meta::pure::functions::relation::processRangeFrame(frameStart:Any[1], frameEnd:Any[1]):_Range[1]
+{
+  if($frameStart == 'UNBOUNDED PRECEDING',
+    | if($frameEnd == 'UNBOUNDED FOLLOWING',
+        | _range(unbounded(), unbounded()),
+        | if($frameEnd == 'CURRENT ROW',
+            | _range(unbounded(), 0),
+            | _range(unbounded(), $frameEnd->toInteger())
+          )
+      ),
+    | if($frameStart == 'CURRENT ROW',
+        | if($frameEnd == 'UNBOUNDED FOLLOWING',
+            | _range(0, unbounded()),
+            | if($frameEnd == 'CURRENT ROW',
+                | _range(0, 0),
+                | _range(0, $frameEnd->toInteger())
+              )
+          ),
+        | if($frameEnd == 'UNBOUNDED FOLLOWING',
+            | _range($frameStart->toInteger(), unbounded()),
+            | if($frameEnd == 'CURRENT ROW',
+                | _range($frameStart->toInteger(), 0),
+                | _range($frameStart->toInteger(), $frameEnd->toInteger())
+              )
+          )
+      )
+  );
+}
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::over<T>(cols:String[*], sortInfo:SortInfo<(?:?)⊆T>[*], frameType:String[1]):_Window<T>[1]
+{
+  // Default to RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+  over($cols, $sortInfo, $frameType, 'UNBOUNDED PRECEDING', 'CURRENT ROW');
+}
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::over<T>(cols:ColSpec<(?:?)⊆T>[1], sortInfo:SortInfo<(?:?)⊆T>[*], frameType:String[1], frameStart:Any[1], frameEnd:Any[1]):_Window<T>[1]
+{
+  over($cols.name, $sortInfo, $frameType, $frameStart, $frameEnd);
+}
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::over<T>(cols:ColSpecArray<(?:?)⊆T>[1], sortInfo:SortInfo<(?:?)⊆T>[*], frameType:String[1], frameStart:Any[1], frameEnd:Any[1]):_Window<T>[1]
+{
+  over($cols.names, $sortInfo, $frameType, $frameStart, $frameEnd);
+}
