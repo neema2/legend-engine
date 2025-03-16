@@ -173,6 +173,9 @@ Class meta::pure::tds::ColumnSort<T>
 Class meta::pure::tds::Window<T>
 {
    partition:Function<{T[1]->Any[1]}>[*];
+   frameMode:String[0..1];
+   frameStart:String[0..1];
+   frameEnd:String[0..1];
 }
 
 Class meta::pure::tds::OlapOperation<T>
@@ -721,6 +724,17 @@ function meta::pure::tds::window<T>(functions:Function<{T[1]->Any[1]}>[*]):Windo
    ^Window<T>
    (
       partition=$functions
+   )
+}
+
+function meta::pure::tds::window<T>(functions:Function<{T[1]->Any[1]}>[*], frameMode:String[1], frameStart:String[1], frameEnd:String[0..1]):Window<T>[1]
+{
+   ^Window<T>
+   (
+      partition=$functions,
+      frameMode=$frameMode,
+      frameStart=$frameStart,
+      frameEnd=$frameEnd
    )
 }
 

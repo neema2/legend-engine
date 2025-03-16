@@ -98,3 +98,44 @@ function
 {
   over([],$sortInfo,$frame)
 }
+
+// Window frame mode specific overloads
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::over<T>(cols:String[*], sortInfo:SortInfo<(?:?)⊆T>[*], frameMode:String[1], frameStart:String[1], frameEnd:String[0..1]):_Window<T>[1]
+{
+  ^_Window<T>
+  (
+    partition=$cols,
+    sortInfo=$sortInfo,
+    frameMode=$frameMode,
+    frameStart=$frameStart,
+    frameEnd=$frameEnd
+  );
+}
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::over<T>(cols:ColSpec<(?:?)⊆T>[1], sortInfo:SortInfo<(?:?)⊆T>[*], frameMode:String[1], frameStart:String[1], frameEnd:String[0..1]):_Window<T>[1]
+{
+  over($cols.name, $sortInfo, $frameMode, $frameStart, $frameEnd)
+}
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::over<T>(cols:ColSpecArray<(?:?)⊆T>[1], sortInfo:SortInfo<(?:?)⊆T>[*], frameMode:String[1], frameStart:String[1], frameEnd:String[0..1]):_Window<T>[1]
+{
+  over($cols.names, $sortInfo, $frameMode, $frameStart, $frameEnd)
+}
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::over<T>(sortInfo:SortInfo<(?:?)⊆T>[*], frameMode:String[1], frameStart:String[1], frameEnd:String[0..1]):_Window<T>[1]
+{
+  over([], $sortInfo, $frameMode, $frameStart, $frameEnd)
+}
