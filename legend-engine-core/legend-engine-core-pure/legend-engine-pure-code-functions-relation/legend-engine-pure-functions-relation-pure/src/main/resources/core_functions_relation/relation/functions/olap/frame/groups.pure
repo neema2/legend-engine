@@ -1,0 +1,67 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::pure::metamodel::relation::*;
+import meta::pure::functions::relation::*;
+
+/**
+ * Creates a window frame with GROUPS mode.
+ * GROUPS mode defines the window frame in terms of groups of rows that have the same values for the ORDER BY key.
+ * 
+ * @param startBound - The start bound of the frame (e.g., 'UNBOUNDED PRECEDING', 'CURRENT ROW', '1 PRECEDING')
+ * @param endBound - The end bound of the frame (e.g., 'UNBOUNDED FOLLOWING', 'CURRENT ROW', '1 FOLLOWING')
+ * @return A WindowFrame instance with GROUPS mode
+ */
+function meta::pure::functions::relation::groupsFrame(startBound: String[1], endBound: String[1]): WindowFrame[1]
+{
+    windowFrame('GROUPS', $startBound, $endBound);
+}
+
+/**
+ * Creates a window frame with GROUPS mode that includes all groups from the start of the partition to the current row.
+ * @return A WindowFrame instance with GROUPS mode from UNBOUNDED PRECEDING to CURRENT ROW
+ */
+function meta::pure::functions::relation::groupsUnboundedPrecedingToCurrentRow(): WindowFrame[1]
+{
+    groupsFrame('UNBOUNDED PRECEDING', 'CURRENT ROW');
+}
+
+/**
+ * Creates a window frame with GROUPS mode that includes all groups in the partition.
+ * @return A WindowFrame instance with GROUPS mode from UNBOUNDED PRECEDING to UNBOUNDED FOLLOWING
+ */
+function meta::pure::functions::relation::groupsUnboundedPrecedingToUnboundedFollowing(): WindowFrame[1]
+{
+    groupsFrame('UNBOUNDED PRECEDING', 'UNBOUNDED FOLLOWING');
+}
+
+/**
+ * Creates a window frame with GROUPS mode that includes the current group.
+ * @return A WindowFrame instance with GROUPS mode from CURRENT ROW to CURRENT ROW
+ */
+function meta::pure::functions::relation::groupsCurrentRow(): WindowFrame[1]
+{
+    groupsFrame('CURRENT ROW', 'CURRENT ROW');
+}
+
+/**
+ * Creates a window frame with GROUPS mode that includes a specified number of groups before and after the current group.
+ * @param preceding - Number of groups preceding the current group
+ * @param following - Number of groups following the current group
+ * @return A WindowFrame instance with GROUPS mode with the specified bounds
+ */
+function meta::pure::functions::relation::groupsRange(preceding: Integer[1], following: Integer[1]): WindowFrame[1]
+{
+    groupsFrame($preceding->toString() + ' PRECEDING', $following->toString() + ' FOLLOWING');
+}
