@@ -49,3 +49,43 @@ function
 {
   ^Rows(offsetFrom = $offsetFrom, offsetTo = $offsetTo);
 }
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::rows(offsetFrom:meta::pure::functions::relation::CurrentRowFrameValue[1], offsetTo:Integer[1]):Rows[1]
+{
+  ^Rows(offsetFrom = $offsetFrom, offsetTo = ^FrameIntValue(value=$offsetTo));
+}
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::rows(offsetFrom:Integer[1], offsetTo:meta::pure::functions::relation::CurrentRowFrameValue[1]):Rows[1]
+{
+  ^Rows(offsetFrom = ^FrameIntValue(value=$offsetFrom), offsetTo = $offsetTo);
+}
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::rows(offsetFrom:meta::pure::functions::relation::CurrentRowFrameValue[1], offsetTo:meta::pure::functions::relation::UnboundedFrameValue[1]):Rows[1]
+{
+  ^Rows(offsetFrom = $offsetFrom, offsetTo = $offsetTo);
+}
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::rows(offsetFrom:meta::pure::functions::relation::UnboundedFrameValue[1], offsetTo:meta::pure::functions::relation::CurrentRowFrameValue[1]):Rows[1]
+{
+  ^Rows(offsetFrom = $offsetFrom, offsetTo = $offsetTo);
+}
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::rows(offsetFrom:meta::pure::functions::relation::CurrentRowFrameValue[1], offsetTo:meta::pure::functions::relation::CurrentRowFrameValue[1]):Rows[1]
+{
+  ^Rows(offsetFrom = $offsetFrom, offsetTo = $offsetTo);
+}
