@@ -27,7 +27,7 @@ function <<test.Test>> meta::relational::tests::tds::snowflake::testWindowFrameR
     Person.all()
       ->project([
           col(p|$p.lastName, 'lastName'),
-          col(window(p|$p.firstName, sortAsc(p|$p.lastName), 'ROWS', 'UNBOUNDED PRECEDING', 'CURRENT ROW', func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
+          col(window(p|$p.firstName, sortAsc(p|$p.lastName), rows(unbounded(), 0), func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
       ])
   };
   let result = toSQLString($func, simpleRelationalMappingInc, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
@@ -40,7 +40,7 @@ function <<test.Test>> meta::relational::tests::tds::snowflake::testWindowFrameR
     Person.all()
       ->project([
           col(p|$p.lastName, 'lastName'),
-          col(window(p|$p.firstName, sortAsc(p|$p.lastName), 'RANGE', 'UNBOUNDED PRECEDING', 'UNBOUNDED FOLLOWING', func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
+          col(window(p|$p.firstName, sortAsc(p|$p.lastName), _range(unbounded(), unbounded()), func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
       ])
   };
   let result = toSQLString($func, simpleRelationalMappingInc, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
@@ -53,7 +53,7 @@ function <<test.Test>> meta::relational::tests::tds::snowflake::testWindowFrameR
     Person.all()
       ->project([
           col(p|$p.lastName, 'lastName'),
-          col(window(p|$p.firstName, sortAsc(p|$p.lastName), 'ROWS', 'CURRENT ROW', '3', func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
+          col(window(p|$p.firstName, sortAsc(p|$p.lastName), rows(0, 3), func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
       ])
   };
   let result = toSQLString($func, simpleRelationalMappingInc, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
@@ -66,7 +66,7 @@ function <<test.Test>> meta::relational::tests::tds::snowflake::testWindowFrameR
     Person.all()
       ->project([
           col(p|$p.lastName, 'lastName'),
-          col(window(p|$p.firstName, sortAsc(p|$p.lastName), 'RANGE', '2', 'CURRENT ROW', func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
+          col(window(p|$p.firstName, sortAsc(p|$p.lastName), _range(2, 0), func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
       ])
   };
   let result = toSQLString($func, simpleRelationalMappingInc, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
@@ -79,7 +79,7 @@ function <<test.Test>> meta::relational::tests::tds::snowflake::testWindowFrameR
     Person.all()
       ->project([
           col(p|$p.lastName, 'lastName'),
-          col(window(p|$p.firstName, sortAsc(p|$p.lastName), 'ROWS', '1', '1', func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
+          col(window(p|$p.firstName, sortAsc(p|$p.lastName), rows(1, 1), func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
       ])
   };
   let result = toSQLString($func, simpleRelationalMappingInc, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
