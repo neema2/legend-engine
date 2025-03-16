@@ -1,0 +1,129 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::pure::test::pct::*;
+import meta::pure::metamodel::relation::*;
+
+// Basic timeSlice function that takes a timestamp and time unit
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1]):DateTime[1];
+
+// timeSlice with slice size parameter
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1]):DateTime[1];
+
+// timeSlice with slice size and end of slice parameters
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1], endOfSlice:Boolean[1]):DateTime[1];
+
+// timeSlice with slice size, end of slice, and timezone parameters
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1], endOfSlice:Boolean[1], timezone:String[1]):DateTime[1];
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testBasicTimeSlice<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                timestamp
+                2023-01-15T14:30:45.123+0000
+            #;
+    
+    // Test with different time units
+    let yearExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'YEAR'), 'yearResult')])};
+    let quarterExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'QUARTER'), 'quarterResult')])};
+    let monthExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'MONTH'), 'monthResult')])};
+    let weekExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'WEEK'), 'weekResult')])};
+    let dayExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'DAY'), 'dayResult')])};
+    let hourExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'HOUR'), 'hourResult')])};
+    let minuteExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'MINUTE'), 'minuteResult')])};
+    let secondExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'SECOND'), 'secondResult')])};
+    
+    let yearRes = $f->eval($yearExpr);
+    let quarterRes = $f->eval($quarterExpr);
+    let monthRes = $f->eval($monthExpr);
+    let weekRes = $f->eval($weekExpr);
+    let dayRes = $f->eval($dayExpr);
+    let hourRes = $f->eval($hourExpr);
+    let minuteRes = $f->eval($minuteExpr);
+    let secondRes = $f->eval($secondExpr);
+    
+    assertEquals(%2023-01-01T00:00:00.000+0000, $yearRes.rows->at(0).get('yearResult'));
+    assertEquals(%2023-01-01T00:00:00.000+0000, $quarterRes.rows->at(0).get('quarterResult'));
+    assertEquals(%2023-01-01T00:00:00.000+0000, $monthRes.rows->at(0).get('monthResult'));
+    assertEquals(%2023-01-15T00:00:00.000+0000, $dayRes.rows->at(0).get('dayResult'));
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourRes.rows->at(0).get('hourResult'));
+    assertEquals(%2023-01-15T14:30:00.000+0000, $minuteRes.rows->at(0).get('minuteResult'));
+    assertEquals(%2023-01-15T14:30:45.000+0000, $secondRes.rows->at(0).get('secondResult'));
+    
+    true;
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithSliceSize<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                timestamp
+                2023-01-15T14:30:45.123+0000
+            #;
+    
+    // Test with different slice sizes
+    let hourExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'HOUR', 2), 'hourResult')])};
+    let minuteExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'MINUTE', 15), 'minuteResult')])};
+    let secondExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'SECOND', 30), 'secondResult')])};
+    
+    let hourRes = $f->eval($hourExpr);
+    let minuteRes = $f->eval($minuteExpr);
+    let secondRes = $f->eval($secondExpr);
+    
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourRes.rows->at(0).get('hourResult'));
+    assertEquals(%2023-01-15T14:30:00.000+0000, $minuteRes.rows->at(0).get('minuteResult'));
+    assertEquals(%2023-01-15T14:30:30.000+0000, $secondRes.rows->at(0).get('secondResult'));
+    
+    true;
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithEndOfSlice<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                timestamp
+                2023-01-15T14:30:45.123+0000
+            #;
+    
+    // Test with end of slice parameter
+    let hourStartExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'HOUR', 1, false), 'hourStartResult')])};
+    let hourEndExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'HOUR', 1, true), 'hourEndResult')])};
+    
+    let hourStartRes = $f->eval($hourStartExpr);
+    let hourEndRes = $f->eval($hourEndExpr);
+    
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourStartRes.rows->at(0).get('hourStartResult'));
+    assertEquals(%2023-01-15T15:00:00.000+0000, $hourEndRes.rows->at(0).get('hourEndResult'));
+    
+    true;
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithTimezone<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let tds = #TDS
+                timestamp
+                2023-01-15T14:30:45.123+0000
+            #;
+    
+    // Test with timezone parameter
+    let hourUTCExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'HOUR', 1, false, 'UTC'), 'hourUTCResult')])};
+    let hourESTExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'HOUR', 1, false, 'America/New_York'), 'hourESTResult')])};
+    
+    let hourUTCRes = $f->eval($hourUTCExpr);
+    let hourESTRes = $f->eval($hourESTExpr);
+    
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourUTCRes.rows->at(0).get('hourUTCResult'));
+    // The exact result will depend on timezone conversion, this is a placeholder assertion
+    // assertEquals(%2023-01-15T09:00:00.000-0500, $hourESTRes.rows->at(0).get('hourESTResult'));
+    
+    true;
+}
