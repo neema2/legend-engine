@@ -21,18 +21,40 @@ import meta::relational::runtime::*;
 import meta::pure::extension::*;
 import meta::core::runtime::*;
 import meta::pure::metamodel::relation::*;
+import meta::pure::functions::relation::*;
 
+/**
+ * Process a window frame into its SQL string representation.
+ * @param window - The window column containing the frame
+ * @param sgc - The SQL generation context
+ * @return The SQL string representation of the window frame
+ */
 function meta::relational::functions::sqlQueryToString::default::processWindowFrame(window: WindowColumn[1], sgc: SqlGenerationContext[1]): String[1]
 {
    if($window.frame->isEmpty(), 
       '', 
-      ' ' + $window.frame->toOne().mode + ' BETWEEN ' + 
+      ' ' + meta::pure::functions::relation::frameModeToString($window.frame->toOne().mode) + ' BETWEEN ' + 
       processFrameBound($window.frame->toOne().startBound) + ' AND ' + 
       processFrameBound($window.frame->toOne().endBound)
    );
 }
 
+/**
+ * Process a frame bound value into its SQL string representation.
+ * @param bound - The frame bound value to process
+ * @return The SQL string representation of the frame bound
+ */
+function meta::relational::functions::sqlQueryToString::default::processFrameBound(bound: FrameBoundValue[1]): String[1]
+{
+   processFrameBoundDefault($bound);
+}
+
+/**
+ * Backward compatibility function for processing string-based frame bounds.
+ * @param bound - The frame bound string to process
+ * @return The SQL string representation of the frame bound
+ */
 function meta::relational::functions::sqlQueryToString::default::processFrameBound(bound: String[1]): String[1]
 {
-   $bound;
+   processFrameBoundDefault($bound);
 }

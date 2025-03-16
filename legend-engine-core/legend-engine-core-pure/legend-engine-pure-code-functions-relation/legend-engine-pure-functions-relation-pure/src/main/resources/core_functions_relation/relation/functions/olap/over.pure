@@ -1,4 +1,4 @@
-// Copyright 2024 Goldman Sachs
+// Copyright 2020 Goldman Sachs
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,47 +14,47 @@
 
 import meta::pure::test::pct::*;
 import meta::pure::metamodel::relation::*;
+import meta::pure::functions::relation::*;
 
 function
     <<functionType.NormalizeRequiredFunction,
     PCT.function>>
-    meta::pure::functions::relation::over<T>(cols:String[*], sortInfo:SortInfo<(?:?)⊆T>[*], frame:Frame[0..1]):_Window<T>[1]
+    meta::pure::functions::relation::over<T>(cols:String[*], sortInfo:SortInfo<T>[*], frame:Frame[0..1]):_Window<T>[1]
 {
   ^_Window<T>
   (
-    partition=$cols,
-    sortInfo=$sortInfo,
+    partition = $cols,
+    sortInfo = $sortInfo,
     frame = $frame
-  );
+  )
 }
 
 function
     <<functionType.NormalizeRequiredFunction,
     PCT.function>>
-    meta::pure::functions::relation::over<T>(cols:ColSpec<(?:?)⊆T>[1]):_Window<T>[1]
+    meta::pure::functions::relation::over<T>(cols:ColSpec<T>[1]):_Window<T>[1]
 {
   ^_Window<T>
   (
-    partition=$cols.name
-  );
+    partition = $cols.name
+  )
 }
 
 function
     <<functionType.NormalizeRequiredFunction,
     PCT.function>>
-    meta::pure::functions::relation::over<T>(cols:ColSpecArray<(?:?)⊆T>[1]):_Window<T>[1]
+    meta::pure::functions::relation::over<T>(cols:ColSpecArray<T>[1]):_Window<T>[1]
 {
   ^_Window<T>
   (
-    partition=$cols.names
-  );
+    partition = $cols.names
+  )
 }
-
 
 function
     <<functionType.NormalizeRequiredFunction,
     PCT.function>>
-    meta::pure::functions::relation::over<T>(sortInfo:SortInfo<(?:?)⊆T>[*]):_Window<T>[1]
+    meta::pure::functions::relation::over<T>(sortInfo:SortInfo<T>[*]):_Window<T>[1]
 {
   over([],$sortInfo,[])
 }
@@ -70,7 +70,7 @@ function
 function
     <<functionType.NormalizeRequiredFunction,
     PCT.function>>
-    meta::pure::functions::relation::over<T>(cols:ColSpec<(?:?)⊆T>[1], sortInfo:SortInfo<(?:?)⊆T>[*]):_Window<T>[1]
+    meta::pure::functions::relation::over<T>(cols:ColSpec<T>[1], sortInfo:SortInfo<T>[*]):_Window<T>[1]
 {
   over($cols.name,$sortInfo,[])
 }
@@ -78,7 +78,7 @@ function
 function
     <<functionType.NormalizeRequiredFunction,
     PCT.function>>
-    meta::pure::functions::relation::over<T>(cols:ColSpecArray<(?:?)⊆T>[1], sortInfo:SortInfo<(?:?)⊆T>[*]):_Window<T>[1]
+    meta::pure::functions::relation::over<T>(cols:ColSpecArray<T>[1], sortInfo:SortInfo<T>[*]):_Window<T>[1]
 {
   over($cols.names,$sortInfo,[])
 }
@@ -86,7 +86,7 @@ function
 function
     <<functionType.NormalizeRequiredFunction,
     PCT.function>>
-    meta::pure::functions::relation::over<T>(cols:ColSpec<(?:?)⊆T>[1], frame:Frame[1]):_Window<T>[1]
+    meta::pure::functions::relation::over<T>(cols:ColSpec<T>[1], frame:Frame[1]):_Window<T>[1]
 {
   over($cols.name,[],$frame)
 }
@@ -94,7 +94,7 @@ function
 function
     <<functionType.NormalizeRequiredFunction,
     PCT.function>>
-    meta::pure::functions::relation::over<T>(sortInfo:SortInfo<(?:?)⊆T>[*], frame:Frame[1]):_Window<T>[1]
+    meta::pure::functions::relation::over<T>(sortInfo:SortInfo<T>[*], frame:Frame[1]):_Window<T>[1]
 {
   over([],$sortInfo,$frame)
 }

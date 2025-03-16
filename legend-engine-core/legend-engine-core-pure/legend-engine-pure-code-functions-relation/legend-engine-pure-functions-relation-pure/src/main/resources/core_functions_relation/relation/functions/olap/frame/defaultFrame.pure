@@ -18,17 +18,13 @@ import meta::pure::functions::lang::*;
 import meta::pure::test::pct::*;
 
 /**
- * Creates a frame specification with the given mode and bounds.
- * @param mode - The frame mode (ROWS, RANGE, or GROUPS)
- * @param startBound - The start bound of the frame
- * @param endBound - The end bound of the frame
- * @return A Frame instance
+ * Creates a default frame with ROWS mode and bounds from UNBOUNDED PRECEDING to CURRENT ROW.
+ * @return A Frame instance with default settings
  */
 function 
     <<functionType.NormalizeRequiredFunction,
     PCT.function>>
-    meta::pure::functions::relation::frame(mode: String[1], startBound: String[1], endBound: String[1]): meta::pure::functions::relation::Frame[1]
+    meta::pure::functions::relation::defaultFrame(): meta::pure::functions::relation::Frame[1]
 {
-    // Use the existing windowFrame function
-    windowFrame($mode, $startBound, $endBound);
+    windowFrame('ROWS', 'UNBOUNDED PRECEDING', 'CURRENT ROW');
 }

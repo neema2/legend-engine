@@ -12,23 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import meta::pure::test::pct::*;
 import meta::pure::metamodel::relation::*;
 import meta::pure::functions::relation::*;
-import meta::pure::functions::lang::*;
-import meta::pure::test::pct::*;
+import meta::pure::functions::math::*;
 
-/**
- * Creates a frame specification with the given mode and bounds.
- * @param mode - The frame mode (ROWS, RANGE, or GROUPS)
- * @param startBound - The start bound of the frame
- * @param endBound - The end bound of the frame
- * @return A Frame instance
- */
-function 
-    <<functionType.NormalizeRequiredFunction,
-    PCT.function>>
-    meta::pure::functions::relation::frame(mode: String[1], startBound: String[1], endBound: String[1]): meta::pure::functions::relation::Frame[1]
-{
-    // Use the existing windowFrame function
-    windowFrame($mode, $startBound, $endBound);
-}
+native function <<PCT.function>> meta::pure::functions::relation::extendWithWindowFrame<T,U>(rel:Relation<T>[1], window:meta::pure::functions::relation::_Window<T>[1], frameMode:String[1], startBound:String[1], endBound:String[1], columnFn:Function<{Relation<T>[1],meta::pure::functions::relation::_Window<T>[1],T[1]->U[1]}>[1]):Relation<T+U>[1];

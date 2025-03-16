@@ -21,7 +21,23 @@ import meta::relational::runtime::*;
 import meta::pure::extension::*;
 import meta::core::runtime::*;
 import meta::pure::metamodel::relation::*;
+import meta::pure::functions::relation::*;
 
+/**
+ * Process a frame bound value into its SQL string representation.
+ * @param bound - The frame bound value to process
+ * @return The SQL string representation of the frame bound
+ */
+function meta::relational::functions::sqlQueryToString::default::processFrameBoundDefault(bound: FrameBoundValue[1]): String[1]
+{
+   meta::pure::functions::relation::frameBoundValueToString($bound);
+}
+
+/**
+ * Backward compatibility function for processing string-based frame bounds.
+ * @param bound - The frame bound string to process
+ * @return The SQL string representation of the frame bound
+ */
 function meta::relational::functions::sqlQueryToString::default::processFrameBoundDefault(bound: String[1]): String[1]
 {
    if($bound == 'CURRENT ROW', 

@@ -21,7 +21,14 @@ import meta::relational::runtime::*;
 import meta::pure::extension::*;
 import meta::core::runtime::*;
 import meta::pure::metamodel::relation::*;
+import meta::pure::functions::relation::*;
 
+/**
+ * Process a window column into its SQL string representation.
+ * @param window - The window column to process
+ * @param sgc - The SQL generation context
+ * @return The SQL string representation of the window column
+ */
 function meta::relational::functions::sqlQueryToString::default::processWindowColumnDefault(window: WindowColumn[1], sgc: SqlGenerationContext[1]): String[1]
 {
    let partitionBy = if($window.partitionBy->isEmpty(), 
