@@ -34,6 +34,7 @@ function <<access.private>> meta::relational::functions::sqlQueryToString::duckD
       commonTableExpressionsProcessor = processCommonTableExpressionsProcessorDefault_CommonTableExpression_MANY__SqlGenerationContext_1__Boolean_1__String_1_,
       columnNameToIdentifier = columnNameToIdentifierForDuckDB_String_1__DbConfig_1__String_1_,
       identifierProcessor = processIdentifierWithDoubleQuotes_String_1__DbConfig_1__String_1_,
+      timeSliceProcessor = duckDBTimeSliceOperation_TimeSliceOperation_1__SqlGenerationContext_1__String_1_,
       dynaFuncDispatch = $dynaFuncDispatch,
       ddlCommandsTranslator = getDDLCommandsTranslator()
    );
