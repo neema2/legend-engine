@@ -15,6 +15,16 @@
 import meta::pure::test::pct::*;
 import meta::pure::metamodel::relation::*;
 
+Class meta::pure::functions::relation::_Window<T>
+{
+  partition: String[*];
+  sortInfo: SortInfo<(?:?)⊆T>[*];
+  frame: Frame[0..1];
+  frameMode: String[0..1];
+  frameStart: String[0..1];
+  frameEnd: String[0..1];
+}
+
 function
     <<functionType.NormalizeRequiredFunction,
     PCT.function>>

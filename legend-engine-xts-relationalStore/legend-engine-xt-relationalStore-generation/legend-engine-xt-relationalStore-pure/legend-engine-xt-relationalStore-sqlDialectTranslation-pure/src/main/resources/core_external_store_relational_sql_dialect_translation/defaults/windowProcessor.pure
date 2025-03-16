@@ -1,0 +1,46 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::external::store::relational::sqlDialectTranslation::*;
+import meta::external::store::relational::sqlDialectTranslation::defaults::*;
+import meta::external::query::sql::metamodel::*;
+
+function meta::external::store::relational::sqlDialectTranslation::defaults::windowProcessor_default(): NodeProcessor<meta::external::query::sql::metamodel::Window>[1]
+{
+  nodeProcessor(
+    meta::external::query::sql::metamodel::Window,
+    {sqlDialect, w, state, config |
+      let sep0 = $state.separator(0, $config);
+      let sep1 = $state.separator(1, $config);
+      if ($w.windowRef->isNotEmpty(),
+          | $w.windowRef->toOne(),
+          | let partitions = if ($w.partitions->isNotEmpty(),
+              | $sqlDialect->keyword('partition by', $state, $config) + $sep1 + $w.partitions->map(p | $sqlDialect->executeNodeProcessor($p, [], $state->increaseLevel(), $config))->joinStrings(',' + $sep1),
+              | ''
+            );
+            let orderBy = if ($w.orderBy->isNotEmpty(),
+              | let sep = if ($w.partitions->isNotEmpty(), | $sep0, | '');
+                $sep + $sqlDialect->keyword('order by', $state, $config) + $sep1 + $w.orderBy->map(o | $sqlDialect->executeNodeProcessor($o, [], $state->increaseLevel(), $config))->joinStrings(',' + $sep1);,
+              | ''
+            );
+            let windowFrame = if ($w.windowFrame->isNotEmpty(),
+              | let sep = if ($w.partitions->isNotEmpty() || $w.orderBy->isNotEmpty(), | $sep0, | '');
+                $sep + $sqlDialect->executeNodeProcessor($w.windowFrame->toOne(), [], $state->increaseLevel(), $config),
+              | ''
+            );
+            $partitions + $orderBy + $windowFrame;
+      );
+    }
+  )
+}

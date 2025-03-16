@@ -40,6 +40,8 @@ function <<access.private>> meta::relational::functions::sqlQueryToString::snowf
    let literalProcessor = {type:Type[1]| $literalProcessors->get(if($type->instanceOf(Enumeration), | Enum, | $type))->toOne()};
    let dynaFuncDispatch = getDynaFunctionToSqlDefault($literalProcessor)->groupBy(d| $d.funcName)->putAll(
      getDynaFunctionToSqlForSnowflake()->groupBy(d| $d.funcName))->getDynaFunctionDispatcher();
+      windowFrameProcessor = windowFrameProcessor_default(),
+      frameBoundProcessor = frameBoundProcessor_default(),
 
    ^DbExtension(
       isBooleanLiteralSupported = true,
