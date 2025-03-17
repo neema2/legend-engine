@@ -45,6 +45,7 @@ import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.m
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.meta.NewLambdaFunction;
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.meta.NewProperty;
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.meta.NewQualifiedProperty;
+import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.runtime.CurrentUser;
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.runtime.CurrentUserId;
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.runtime.Guid;
 import org.finos.legend.pure.runtime.java.extension.functions.compiled.natives.runtime.IsOptionSet;
@@ -112,6 +113,7 @@ public class FunctionsExtensionCompiled extends AbstractCompiledExtension
                 new NewQualifiedProperty(),
 
                 //Runtime
+                new CurrentUser(),
                 new CurrentUserId(),
                 new IsOptionSet(),
                 new Guid(),
