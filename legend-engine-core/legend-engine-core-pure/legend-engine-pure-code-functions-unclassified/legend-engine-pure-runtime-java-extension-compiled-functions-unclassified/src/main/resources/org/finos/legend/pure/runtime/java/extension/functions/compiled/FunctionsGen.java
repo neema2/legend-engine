@@ -205,4 +205,9 @@ public class FunctionsGen extends org.finos.legend.pure.runtime.java.extension.f
     {
         return traceSpan(es, function, operationName, funcToGetTags, tagsCritical, CoreGen.bridge);
     }
+
+    public static String currentUser()
+    {
+        return System.getProperty("user.name");
+    }
 }
