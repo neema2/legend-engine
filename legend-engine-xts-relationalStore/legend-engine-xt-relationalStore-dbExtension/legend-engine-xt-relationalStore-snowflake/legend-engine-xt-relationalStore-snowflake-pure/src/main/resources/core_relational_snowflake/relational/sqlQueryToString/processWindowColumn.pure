@@ -1,0 +1,52 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::relational::functions::sqlQueryToString::snowflake::*;
+import meta::relational::metamodel::operation::*;
+import meta::relational::functions::sqlQueryToString::*;
+import meta::pure::metamodel::relation::*;
+
+function meta::relational::functions::sqlQueryToString::snowflake::processWindowColumn(w:WindowColumn[1], sgc:SqlGenerationContext[1]):String[1]
+{
+   let window = $w.window;
+   let partitionBy = if($window.partition->isEmpty(), |'', |'Partition By ' + $window.partition->map(p|$p->processOperation($sgc))->joinStrings(', '));
+   let orderBy = if($window.sortInfo->isEmpty(), |'', |'Order By ' + $window.sortInfo->map(s|$s.column->processOperation($sgc) + ' ' + $s.direction->toString())->joinStrings(', '));
+   
+   // Add frame clause processing
+   let frameClause = if($window.frame->isEmpty(), 
+                       |'', 
+                       |' ' + processWindowFrame($window.frame->toOne()));
+   
+   $w.func->processOperation($sgc) + ' OVER (' + $partitionBy + if($partitionBy->isEmpty() || $orderBy->isEmpty(), |'', |' ') + $orderBy + $frameClause + ')';
+}
+
+function <<access.private>> meta::relational::functions::sqlQueryToString::snowflake::processWindowFrame(frame:Frame[1]):String[1]
+{
+  let frameType = $frame->match([
+    r:Rows[1] | 'ROWS',
+    r:_Range[1] | 'RANGE'
+  ]);
+  
+  let frameStart = $frame.offsetFrom->match([
+    u:UnboundedFrameValue[1] | 'UNBOUNDED PRECEDING',
+    i:FrameIntValue[1] | if($i.value == 0, |'CURRENT ROW', |$i.value->toString() + ' PRECEDING')
+  ]);
+  
+  let frameEnd = $frame.offsetTo->match([
+    u:UnboundedFrameValue[1] | 'UNBOUNDED FOLLOWING',
+    i:FrameIntValue[1] | if($i.value == 0, |'CURRENT ROW', |$i.value->toString() + ' FOLLOWING')
+  ]);
+  
+  $frameType + ' BETWEEN ' + $frameStart + ' AND ' + $frameEnd;
+}

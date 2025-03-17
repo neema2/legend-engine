@@ -98,3 +98,15 @@ function
 {
   over([],$sortInfo,$frame)
 }
+
+function
+    <<functionType.NormalizeRequiredFunction,
+    PCT.function>>
+    meta::pure::functions::relation::window<T,U>(cols:String[*], sortInfo:SortInfo<(?:?)⊆T>[*], frame:Frame[1], func:Function<{T[1]->U[0..1]}>[1]):WindowColumn<T,U>[1]
+{
+  ^WindowColumn<T,U>
+  (
+    func=$func,
+    window=over($cols, $sortInfo, $frame)
+  );
+}
