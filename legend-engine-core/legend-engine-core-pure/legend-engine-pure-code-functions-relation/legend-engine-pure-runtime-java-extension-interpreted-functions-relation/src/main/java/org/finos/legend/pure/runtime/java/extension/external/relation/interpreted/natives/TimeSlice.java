@@ -25,6 +25,7 @@ import org.finos.legend.pure.m3.navigation.ValueSpecificationBootstrap;
 import org.finos.legend.pure.m4.ModelRepository;
 import org.finos.legend.pure.m4.coreinstance.CoreInstance;
 import org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance;
+import org.finos.legend.engine.plan.dependencies.domain.date.DurationUnit;
 import org.finos.legend.pure.runtime.java.extension.external.relation.interpreted.natives.shared.Shared;
 import org.finos.legend.pure.runtime.java.interpreted.ExecutionSupport;
 import org.finos.legend.pure.runtime.java.interpreted.FunctionExecutionInterpreted;
@@ -53,7 +54,7 @@ public class TimeSlice extends Shared
         
         // Extract time unit parameter
         CoreInstance timeUnitParam = Instance.getValueForMetaPropertyToOneResolved(params.get(1), M3Properties.values, processorSupport);
-        String timeUnit = timeUnitParam.getName().toUpperCase();
+        DurationUnit timeUnit = DurationUnit.valueOf(timeUnitParam.getName());
         
         // Extract optional slice size parameter (default to 1)
         int sliceSize = 1;
@@ -89,34 +90,31 @@ public class TimeSlice extends Shared
         return ValueSpecificationBootstrap.wrapValueSpecification(dateInstance, false, processorSupport);
     }
     
-    private ZonedDateTime calculateTimeSlice(ZonedDateTime timestamp, String timeUnit, int sliceSize, boolean endOfSlice)
+    private ZonedDateTime calculateTimeSlice(ZonedDateTime timestamp, DurationUnit timeUnit, int sliceSize, boolean endOfSlice)
     {
         ZonedDateTime result;
         
         switch (timeUnit)
         {
-            case "SECOND":
+            case SECONDS:
                 result = truncateToSecond(timestamp, sliceSize);
                 break;
-            case "MINUTE":
+            case MINUTES:
                 result = truncateToMinute(timestamp, sliceSize);
                 break;
-            case "HOUR":
+            case HOURS:
                 result = truncateToHour(timestamp, sliceSize);
                 break;
-            case "DAY":
+            case DAYS:
                 result = truncateToDay(timestamp);
                 break;
-            case "WEEK":
+            case WEEKS:
                 result = truncateToWeek(timestamp);
                 break;
-            case "MONTH":
+            case MONTHS:
                 result = truncateToMonth(timestamp);
                 break;
-            case "QUARTER":
-                result = truncateToQuarter(timestamp);
-                break;
-            case "YEAR":
+            case YEARS:
                 result = truncateToYear(timestamp);
                 break;
             default:
@@ -128,28 +126,25 @@ public class TimeSlice extends Shared
         {
             switch (timeUnit)
             {
-                case "SECOND":
+                case SECONDS:
                     result = result.plusSeconds(sliceSize);
                     break;
-                case "MINUTE":
+                case MINUTES:
                     result = result.plusMinutes(sliceSize);
                     break;
-                case "HOUR":
+                case HOURS:
                     result = result.plusHours(sliceSize);
                     break;
-                case "DAY":
+                case DAYS:
                     result = result.plusDays(sliceSize);
                     break;
-                case "WEEK":
+                case WEEKS:
                     result = result.plusWeeks(sliceSize);
                     break;
-                case "MONTH":
+                case MONTHS:
                     result = result.plusMonths(sliceSize);
                     break;
-                case "QUARTER":
-                    result = result.plusMonths(sliceSize * 3);
-                    break;
-                case "YEAR":
+                case YEARS:
                     result = result.plusYears(sliceSize);
                     break;
             }

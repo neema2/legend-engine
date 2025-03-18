@@ -29,13 +29,13 @@ The function definition includes:
 
 ```pure
 // Basic timeSlice function that takes a timestamp and time unit
-native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1]):DateTime[1];
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:meta::pure::functions::date::DurationUnit[1]):DateTime[1];
 
 // timeSlice with slice size parameter
-native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1]):DateTime[1];
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:meta::pure::functions::date::DurationUnit[1], sliceSize:Integer[1]):DateTime[1];
 
 // timeSlice with slice size and end of slice parameters
-native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1], endOfSlice:Boolean[1]):DateTime[1];
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:meta::pure::functions::date::DurationUnit[1], sliceSize:Integer[1], endOfSlice:Boolean[1]):DateTime[1];
 
 
 ```
@@ -212,9 +212,9 @@ function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testBas
             #;
     
     // Test with different time units
-    let yearExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'YEAR'), 'yearResult')])};
-    let quarterExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'QUARTER'), 'quarterResult')])};
-    let monthExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'MONTH'), 'monthResult')])};
+    let yearExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.YEARS), 'yearResult')])};
+    let quarterExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.MONTHS), 'quarterResult')])};  // No QUARTERS in DurationUnit
+    let monthExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.MONTHS), 'monthResult')])};
     // ... more test cases
     
     let yearRes = $f->eval($yearExpr);

@@ -25,9 +25,9 @@ public class TimeSlice extends AbstractNative implements Native
     public TimeSlice()
     {
         super(
-            "timeSlice_DateTime_1__String_1__DateTime_1_",
-            "timeSlice_DateTime_1__String_1__Integer_1__DateTime_1_",
-            "timeSlice_DateTime_1__String_1__Integer_1__Boolean_1__DateTime_1_"
+            "timeSlice_DateTime_1__DurationUnit_1__DateTime_1_",
+            "timeSlice_DateTime_1__DurationUnit_1__Integer_1__DateTime_1_",
+            "timeSlice_DateTime_1__DurationUnit_1__Integer_1__Boolean_1__DateTime_1_"
         );
     }
 

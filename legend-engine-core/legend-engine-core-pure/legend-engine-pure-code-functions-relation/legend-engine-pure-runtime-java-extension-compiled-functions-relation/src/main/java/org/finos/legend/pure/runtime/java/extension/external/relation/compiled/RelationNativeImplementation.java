@@ -779,17 +779,17 @@ public class RelationNativeImplementation
     
     // TimeSlice implementation
     
-    public static java.time.ZonedDateTime timeSlice(java.time.ZonedDateTime timestamp, String timeUnit, ExecutionSupport es)
+    public static java.time.ZonedDateTime timeSlice(java.time.ZonedDateTime timestamp, org.finos.legend.engine.plan.dependencies.domain.date.DurationUnit timeUnit, ExecutionSupport es)
     {
         return timeSlice(timestamp, timeUnit, 1, false, es);
     }
 
-    public static java.time.ZonedDateTime timeSlice(java.time.ZonedDateTime timestamp, String timeUnit, int sliceSize, ExecutionSupport es)
+    public static java.time.ZonedDateTime timeSlice(java.time.ZonedDateTime timestamp, org.finos.legend.engine.plan.dependencies.domain.date.DurationUnit timeUnit, int sliceSize, ExecutionSupport es)
     {
         return timeSlice(timestamp, timeUnit, sliceSize, false, es);
     }
 
-    public static java.time.ZonedDateTime timeSlice(java.time.ZonedDateTime timestamp, String timeUnit, int sliceSize, boolean endOfSlice, ExecutionSupport es)
+    public static java.time.ZonedDateTime timeSlice(java.time.ZonedDateTime timestamp, org.finos.legend.engine.plan.dependencies.domain.date.DurationUnit timeUnit, int sliceSize, boolean endOfSlice, ExecutionSupport es)
     {
         // Always use UTC as the default timezone
         java.time.ZoneId zoneId = java.time.ZoneId.of("UTC");
@@ -797,30 +797,27 @@ public class RelationNativeImplementation
         
         java.time.ZonedDateTime result;
         
-        switch (timeUnit.toUpperCase())
+        switch (timeUnit)
         {
-            case "SECOND":
+            case SECONDS:
                 result = truncateToSecond(timestampInTimezone, sliceSize);
                 break;
-            case "MINUTE":
+            case MINUTES:
                 result = truncateToMinute(timestampInTimezone, sliceSize);
                 break;
-            case "HOUR":
+            case HOURS:
                 result = truncateToHour(timestampInTimezone, sliceSize);
                 break;
-            case "DAY":
+            case DAYS:
                 result = truncateToDay(timestampInTimezone);
                 break;
-            case "WEEK":
+            case WEEKS:
                 result = truncateToWeek(timestampInTimezone);
                 break;
-            case "MONTH":
+            case MONTHS:
                 result = truncateToMonth(timestampInTimezone);
                 break;
-            case "QUARTER":
-                result = truncateToQuarter(timestampInTimezone);
-                break;
-            case "YEAR":
+            case YEARS:
                 result = truncateToYear(timestampInTimezone);
                 break;
             default:
@@ -830,30 +827,27 @@ public class RelationNativeImplementation
         // If end of slice is requested, add the slice size to the result
         if (endOfSlice)
         {
-            switch (timeUnit.toUpperCase())
+            switch (timeUnit)
             {
-                case "SECOND":
+                case SECONDS:
                     result = result.plusSeconds(sliceSize);
                     break;
-                case "MINUTE":
+                case MINUTES:
                     result = result.plusMinutes(sliceSize);
                     break;
-                case "HOUR":
+                case HOURS:
                     result = result.plusHours(sliceSize);
                     break;
-                case "DAY":
+                case DAYS:
                     result = result.plusDays(sliceSize);
                     break;
-                case "WEEK":
+                case WEEKS:
                     result = result.plusWeeks(sliceSize);
                     break;
-                case "MONTH":
+                case MONTHS:
                     result = result.plusMonths(sliceSize);
                     break;
-                case "QUARTER":
-                    result = result.plusMonths(sliceSize * 3);
-                    break;
-                case "YEAR":
+                case YEARS:
                     result = result.plusYears(sliceSize);
                     break;
             }
@@ -863,78 +857,7 @@ public class RelationNativeImplementation
         return result.withZoneSameInstant(timestamp.getZone());
     }
 
-    public static java.time.ZonedDateTime timeSlice(java.time.ZonedDateTime timestamp, String timeUnit, int sliceSize, boolean endOfSlice, String timezone, ExecutionSupport es)
-    {
-        java.time.ZoneId zoneId = java.time.ZoneId.of(timezone);
-        java.time.ZonedDateTime timestampInTimezone = timestamp.withZoneSameInstant(zoneId);
-        
-        java.time.ZonedDateTime result;
-        
-        switch (timeUnit.toUpperCase())
-        {
-            case "SECOND":
-                result = truncateToSecond(timestampInTimezone, sliceSize);
-                break;
-            case "MINUTE":
-                result = truncateToMinute(timestampInTimezone, sliceSize);
-                break;
-            case "HOUR":
-                result = truncateToHour(timestampInTimezone, sliceSize);
-                break;
-            case "DAY":
-                result = truncateToDay(timestampInTimezone);
-                break;
-            case "WEEK":
-                result = truncateToWeek(timestampInTimezone);
-                break;
-            case "MONTH":
-                result = truncateToMonth(timestampInTimezone);
-                break;
-            case "QUARTER":
-                result = truncateToQuarter(timestampInTimezone);
-                break;
-            case "YEAR":
-                result = truncateToYear(timestampInTimezone);
-                break;
-            default:
-                throw new RuntimeException("Unsupported time unit: " + timeUnit);
-        }
-        
-        // If end of slice is requested, add the slice size to the result
-        if (endOfSlice)
-        {
-            switch (timeUnit.toUpperCase())
-            {
-                case "SECOND":
-                    result = result.plusSeconds(sliceSize);
-                    break;
-                case "MINUTE":
-                    result = result.plusMinutes(sliceSize);
-                    break;
-                case "HOUR":
-                    result = result.plusHours(sliceSize);
-                    break;
-                case "DAY":
-                    result = result.plusDays(sliceSize);
-                    break;
-                case "WEEK":
-                    result = result.plusWeeks(sliceSize);
-                    break;
-                case "MONTH":
-                    result = result.plusMonths(sliceSize);
-                    break;
-                case "QUARTER":
-                    result = result.plusMonths(sliceSize * 3);
-                    break;
-                case "YEAR":
-                    result = result.plusYears(sliceSize);
-                    break;
-            }
-        }
-        
-        // Convert result back to original timezone
-        return result.withZoneSameInstant(timestamp.getZone());
-    }
+    // This method has been removed as part of the timezone parameter removal
 
     private static java.time.ZonedDateTime truncateToSecond(java.time.ZonedDateTime timestamp, int sliceSize)
     {
