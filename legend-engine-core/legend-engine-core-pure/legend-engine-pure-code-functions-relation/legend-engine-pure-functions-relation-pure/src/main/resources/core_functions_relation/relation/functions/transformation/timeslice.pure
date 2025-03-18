@@ -1,0 +1,63 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+import meta::pure::test::pct::*;
+import meta::pure::metamodel::relation::*;
+import meta::pure::functions::date::*;
+import meta::pure::functions::collection::*;
+import meta::pure::functions::relation::*;
+import meta::pure::functions::relation::functions::*;
+
+// Basic timeSlice function that takes a timestamp and time unit
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:meta::pure::functions::date::DurationUnit[1]):DateTime[1];
+
+// timeSlice with slice size parameter
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:meta::pure::functions::date::DurationUnit[1], sliceSize:Integer[1]):DateTime[1];
+
+// timeSlice with slice size and end of slice parameters
+native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:meta::pure::functions::date::DurationUnit[1], sliceSize:Integer[1], endOfSlice:Boolean[1]):DateTime[1];
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testBasicTimeSlice<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let timestamp = %2023-01-15T14:30:45.123+0000;
+    
+    // Test with different time units
+    assertEq(%2023-01-01T00:00:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.YEARS)));
+    // Temporarily removing QUARTERS test as it's not defined in the Pure DurationUnit enum
+    // assertEq(%2023-01-01T00:00:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.QUARTERS)));
+    assertEq(%2023-01-01T00:00:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.MONTHS)));
+    assertEq(%2023-01-15T00:00:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.WEEKS)));
+    assertEq(%2023-01-15T00:00:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.DAYS)));
+    assertEq(%2023-01-15T14:00:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.HOURS)));
+    assertEq(%2023-01-15T14:30:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.MINUTES)));
+    assertEq(%2023-01-15T14:30:45.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.SECONDS)));
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithSliceSize<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let timestamp = %2023-01-15T14:30:45.123+0000;
+    
+    // Test with different slice sizes
+    assertEq(%2023-01-15T14:00:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.HOURS, 2)));
+    assertEq(%2023-01-15T14:30:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.MINUTES, 15)));
+    assertEq(%2023-01-15T14:30:30.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.SECONDS, 30)));
+}
+
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithEndOfSlice<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+{
+    let timestamp = %2023-01-15T14:30:45.123+0000;
+    
+    // Test with end of slice parameter
+    assertEq(%2023-01-15T14:00:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.HOURS, 1, false)));
+    assertEq(%2023-01-15T15:00:00.000+0000, $f->eval(|timeSlice($timestamp, DurationUnit.HOURS, 1, true)));
+}
