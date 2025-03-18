@@ -213,7 +213,7 @@ function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testBas
     
     // Test with different time units
     let yearExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.YEARS), 'yearResult')])};
-    let quarterExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.MONTHS), 'quarterResult')])};  // No QUARTERS in DurationUnit
+    let quarterExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.QUARTERS), 'quarterResult')])};
     let monthExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.MONTHS), 'monthResult')])};
     // ... more test cases
     

@@ -817,6 +817,9 @@ public class RelationNativeImplementation
             case MONTHS:
                 result = truncateToMonth(timestampInTimezone);
                 break;
+            case QUARTERS:
+                result = truncateToQuarter(timestampInTimezone);
+                break;
             case YEARS:
                 result = truncateToYear(timestampInTimezone);
                 break;
@@ -846,6 +849,9 @@ public class RelationNativeImplementation
                     break;
                 case MONTHS:
                     result = result.plusMonths(sliceSize);
+                    break;
+                case QUARTERS:
+                    result = result.plusMonths(sliceSize * 3);
                     break;
                 case YEARS:
                     result = result.plusYears(sliceSize);

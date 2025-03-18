@@ -114,6 +114,9 @@ public class TimeSlice extends Shared
             case MONTHS:
                 result = truncateToMonth(timestamp);
                 break;
+            case QUARTERS:
+                result = truncateToQuarter(timestamp);
+                break;
             case YEARS:
                 result = truncateToYear(timestamp);
                 break;
@@ -143,6 +146,9 @@ public class TimeSlice extends Shared
                     break;
                 case MONTHS:
                     result = result.plusMonths(sliceSize);
+                    break;
+                case QUARTERS:
+                    result = result.plusMonths(sliceSize * 3);
                     break;
                 case YEARS:
                     result = result.plusYears(sliceSize);
