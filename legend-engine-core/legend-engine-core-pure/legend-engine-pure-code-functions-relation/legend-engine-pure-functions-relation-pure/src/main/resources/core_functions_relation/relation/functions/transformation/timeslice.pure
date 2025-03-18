@@ -34,7 +34,7 @@ function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testBas
     
     // Test with different time units
     let yearResult = timeSlice($timestamp, DurationUnit.YEARS);
-    let quarterResult = timeSlice($timestamp, DurationUnit.MONTHS);  // Using MONTHS as a temporary replacement for QUARTERS
+    let quarterResult = timeSlice($timestamp, DurationUnit.QUARTERS);
     let monthResult = timeSlice($timestamp, DurationUnit.MONTHS);
     let weekResult = timeSlice($timestamp, DurationUnit.WEEKS);
     let dayResult = timeSlice($timestamp, DurationUnit.DAYS);
