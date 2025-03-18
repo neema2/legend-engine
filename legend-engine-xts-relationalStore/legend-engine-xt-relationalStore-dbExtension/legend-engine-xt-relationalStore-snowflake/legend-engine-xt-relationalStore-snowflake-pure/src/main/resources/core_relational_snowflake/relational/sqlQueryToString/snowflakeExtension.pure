@@ -252,9 +252,9 @@ function <<access.private>> meta::relational::functions::sqlQueryToString::snowf
     dynaFnToSql('weekOfYear',             $allStates,            ^ToSql(format='WEEKOFYEAR(%s)')),
     dynaFnToSql('year',                   $allStates,            ^ToSql(format='year(%s)')),
     dynaFnToSql('convertTimeZone',            $allStates,           ^ToSql(format='%s', contextAwareTransform={p:String[3],s:SqlGenerationContext[1] | $p->transformConvertTimeZone($s)})),
-    dynaFnToSql('timeSlice',                  $allStates,            ^ToSql(format='TIME_SLICE(%s, %s)', transform={p:String[2] | [$p->at(0), '\'' + $p->at(1)->toString()->toLower()->substring(0, $p->at(1)->toString()->length() - 1) + '\''] })),
-    dynaFnToSql('timeSlice',                  $allStates,            ^ToSql(format='TIME_SLICE(%s, %s, %s)', transform={p:String[3] | [$p->at(0), '\'' + $p->at(1)->toString()->toLower()->substring(0, $p->at(1)->toString()->length() - 1) + '\'', $p->at(2)] })),
-    dynaFnToSql('timeSlice',                  $allStates,            ^ToSql(format='TIME_SLICE(%s, %s, %s, %s)', transform={p:String[4] | [$p->at(0), '\'' + $p->at(1)->toString()->toLower()->substring(0, $p->at(1)->toString()->length() - 1) + '\'', $p->at(2), $p->at(3)] })),
+    dynaFnToSql('timeSlice',                  $allStates,            ^ToSql(format='TIME_SLICE(%s, %s)', transform={p:String[2] | [$p->at(0), '\'' + $p->at(1)->mapToDBUnitType() + '\''] })),
+    dynaFnToSql('timeSlice',                  $allStates,            ^ToSql(format='TIME_SLICE(%s, %s, %s)', transform={p:String[3] | [$p->at(0), '\'' + $p->at(1)->mapToDBUnitType() + '\'', $p->at(2)] })),
+    dynaFnToSql('timeSlice',                  $allStates,            ^ToSql(format='TIME_SLICE(%s, %s, %s, %s)', transform={p:String[4] | [$p->at(0), '\'' + $p->at(1)->mapToDBUnitType() + '\'', $p->at(2), $p->at(3)] })),
 
 
 
@@ -327,8 +327,8 @@ function <<access.private>> meta::relational::functions::sqlQueryToString::snowf
 
 function <<access.private>> meta::relational::functions::sqlQueryToString::snowflake::processDateDiffDurationUnitForSnowflake(durationUnit:String[1]):String[1]
 {
-   let durationEnumNames = [DurationUnit.YEARS,DurationUnit.MONTHS,DurationUnit.WEEKS,DurationUnit.DAYS,DurationUnit.HOURS,DurationUnit.MINUTES,DurationUnit.SECONDS,DurationUnit.MILLISECONDS]->map(e|$e->toString());
-   let durationDbNames = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second','millisecond'];
+   let durationEnumNames = [DurationUnit.YEARS,DurationUnit.QUARTERS,DurationUnit.MONTHS,DurationUnit.WEEKS,DurationUnit.DAYS,DurationUnit.HOURS,DurationUnit.MINUTES,DurationUnit.SECONDS,DurationUnit.MILLISECONDS]->map(e|$e->toString());
+   let durationDbNames = ['year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second','millisecond'];
    $durationEnumNames->zip($durationDbNames)->filter(h | $h.first == $durationUnit).second->toOne();
 }
 

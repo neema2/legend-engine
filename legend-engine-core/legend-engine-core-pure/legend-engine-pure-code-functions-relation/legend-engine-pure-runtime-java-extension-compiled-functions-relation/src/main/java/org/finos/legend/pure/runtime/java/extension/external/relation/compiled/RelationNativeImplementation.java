@@ -37,6 +37,8 @@ import org.finos.legend.pure.m3.execution.ExecutionSupport;
 import org.finos.legend.pure.m3.navigation.M3Properties;
 import org.finos.legend.pure.m3.navigation.ProcessorSupport;
 import org.finos.legend.pure.m4.coreinstance.CoreInstance;
+import org.finos.legend.pure.m4.coreinstance.primitive.date.DateTime;
+import org.finos.legend.pure.m4.coreinstance.primitive.date.DateFormat;
 import org.finos.legend.pure.runtime.java.compiled.execution.CompiledExecutionSupport;
 import org.finos.legend.pure.runtime.java.compiled.generation.processors.support.CompiledSupport;
 import org.finos.legend.pure.runtime.java.compiled.generation.processors.support.function.SharedPureFunction;
@@ -48,6 +50,9 @@ import org.finos.legend.pure.runtime.java.extension.external.relation.shared.win
 import org.finos.legend.pure.runtime.java.extension.external.relation.shared.window.SortInfo;
 import org.finos.legend.pure.runtime.java.extension.external.relation.shared.window.Window;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 import static org.finos.legend.pure.runtime.java.extension.external.relation.shared.TestTDS.readCsv;
@@ -779,48 +784,57 @@ public class RelationNativeImplementation
     
     // TimeSlice implementation
     
-    public static java.time.ZonedDateTime timeSlice(java.time.ZonedDateTime timestamp, org.finos.legend.engine.plan.dependencies.domain.date.DurationUnit timeUnit, ExecutionSupport es)
+    public static DateTime timeSlice(DateTime timestamp, Enum timeUnitEnum, ExecutionSupport es)
     {
-        return timeSlice(timestamp, timeUnit, 1, false, es);
+        return timeSlice(timestamp, timeUnitEnum.getName(), 1, false, es);
     }
 
-    public static java.time.ZonedDateTime timeSlice(java.time.ZonedDateTime timestamp, org.finos.legend.engine.plan.dependencies.domain.date.DurationUnit timeUnit, int sliceSize, ExecutionSupport es)
+    public static DateTime timeSlice(DateTime timestamp, Enum timeUnitEnum, long sliceSize, ExecutionSupport es)
     {
-        return timeSlice(timestamp, timeUnit, sliceSize, false, es);
+        return timeSlice(timestamp, timeUnitEnum.getName(), (int)sliceSize, false, es);
     }
 
-    public static java.time.ZonedDateTime timeSlice(java.time.ZonedDateTime timestamp, org.finos.legend.engine.plan.dependencies.domain.date.DurationUnit timeUnit, int sliceSize, boolean endOfSlice, ExecutionSupport es)
+    public static DateTime timeSlice(DateTime timestamp, Enum timeUnitEnum, long sliceSize, boolean endOfSlice, ExecutionSupport es)
     {
-        // Always use UTC as the default timezone
-        java.time.ZoneId zoneId = java.time.ZoneId.of("UTC");
-        java.time.ZonedDateTime timestampInTimezone = timestamp.withZoneSameInstant(zoneId);
+        return timeSlice(timestamp, timeUnitEnum.getName(), (int)sliceSize, endOfSlice, es);
+    }
+    
+    private static DateTime timeSlice(DateTime timestamp, String timeUnit, int sliceSize, boolean endOfSlice, ExecutionSupport es)
+    {
+        // Convert DateTime to ZonedDateTime
+        String dateTimeStr = timestamp.toString();
+        ZonedDateTime zonedTimestamp = ZonedDateTime.parse(dateTimeStr);
         
-        java.time.ZonedDateTime result;
+        // Always use UTC as the default timezone
+        ZoneId zoneId = ZoneId.of("UTC");
+        ZonedDateTime timestampInTimezone = zonedTimestamp.withZoneSameInstant(zoneId);
+        
+        ZonedDateTime result;
         
         switch (timeUnit)
         {
-            case SECONDS:
+            case "SECONDS":
                 result = truncateToSecond(timestampInTimezone, sliceSize);
                 break;
-            case MINUTES:
+            case "MINUTES":
                 result = truncateToMinute(timestampInTimezone, sliceSize);
                 break;
-            case HOURS:
+            case "HOURS":
                 result = truncateToHour(timestampInTimezone, sliceSize);
                 break;
-            case DAYS:
+            case "DAYS":
                 result = truncateToDay(timestampInTimezone);
                 break;
-            case WEEKS:
+            case "WEEKS":
                 result = truncateToWeek(timestampInTimezone);
                 break;
-            case MONTHS:
+            case "MONTHS":
                 result = truncateToMonth(timestampInTimezone);
                 break;
-            case QUARTERS:
+            case "QUARTERS":
                 result = truncateToQuarter(timestampInTimezone);
                 break;
-            case YEARS:
+            case "YEARS":
                 result = truncateToYear(timestampInTimezone);
                 break;
             default:
@@ -832,35 +846,36 @@ public class RelationNativeImplementation
         {
             switch (timeUnit)
             {
-                case SECONDS:
+                case "SECONDS":
                     result = result.plusSeconds(sliceSize);
                     break;
-                case MINUTES:
+                case "MINUTES":
                     result = result.plusMinutes(sliceSize);
                     break;
-                case HOURS:
+                case "HOURS":
                     result = result.plusHours(sliceSize);
                     break;
-                case DAYS:
+                case "DAYS":
                     result = result.plusDays(sliceSize);
                     break;
-                case WEEKS:
+                case "WEEKS":
                     result = result.plusWeeks(sliceSize);
                     break;
-                case MONTHS:
+                case "MONTHS":
                     result = result.plusMonths(sliceSize);
                     break;
-                case QUARTERS:
+                case "QUARTERS":
                     result = result.plusMonths(sliceSize * 3);
                     break;
-                case YEARS:
+                case "YEARS":
                     result = result.plusYears(sliceSize);
                     break;
             }
         }
         
-        // Convert result back to original timezone
-        return result.withZoneSameInstant(timestamp.getZone());
+        // Convert result back to original timezone and then to DateTime
+        ZonedDateTime finalResult = result.withZoneSameInstant(zonedTimestamp.getZone());
+        return DateFormat.parseDateTime(finalResult.toString());
     }
 
     // This method has been removed as part of the timezone parameter removal

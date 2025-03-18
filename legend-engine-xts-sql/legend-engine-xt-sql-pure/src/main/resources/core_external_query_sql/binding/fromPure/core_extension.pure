@@ -63,6 +63,7 @@ function meta::external::query::sql::mapDuration(durationUnit:String[1]):Duratio
 {
   [
     pair('year', DurationUnit.YEARS),
+    pair('quarter', DurationUnit.QUARTERS),
     pair('month', DurationUnit.MONTHS),
     pair('week', DurationUnit.WEEKS),
     pair('day', DurationUnit.DAYS),
