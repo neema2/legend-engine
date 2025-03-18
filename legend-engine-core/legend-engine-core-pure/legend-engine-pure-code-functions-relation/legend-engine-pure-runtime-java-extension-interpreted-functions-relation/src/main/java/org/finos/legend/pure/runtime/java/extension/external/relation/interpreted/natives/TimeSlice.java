@@ -16,6 +16,7 @@ package org.finos.legend.pure.runtime.java.extension.external.relation.interpret
 
 import org.eclipse.collections.api.list.ListIterable;
 import org.eclipse.collections.api.map.MutableMap;
+import org.eclipse.collections.api.stack.MutableStack;
 import org.finos.legend.pure.m3.compiler.Context;
 import org.finos.legend.pure.m3.exception.PureExecutionException;
 import org.finos.legend.pure.m3.navigation.Instance;
@@ -31,6 +32,7 @@ import org.finos.legend.pure.runtime.java.interpreted.ExecutionSupport;
 import org.finos.legend.pure.runtime.java.interpreted.FunctionExecutionInterpreted;
 import org.finos.legend.pure.runtime.java.interpreted.VariableContext;
 import org.finos.legend.pure.runtime.java.interpreted.natives.InstantiationContext;
+import org.finos.legend.pure.runtime.java.interpreted.natives.NativeFunction;
 import org.finos.legend.pure.runtime.java.interpreted.profiler.Profiler;
 
 import java.time.ZoneId;
@@ -38,23 +40,27 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Stack;
 
-public class TimeSlice extends Shared
+public class TimeSlice extends NativeFunction
 {
+    private final ModelRepository repository;
+
     public TimeSlice(FunctionExecutionInterpreted functionExecution, ModelRepository repository)
     {
-        super(functionExecution, repository);
+        this.repository = repository;
     }
 
     @Override
-    public CoreInstance execute(ListIterable<? extends CoreInstance> params, Stack<MutableMap<String, CoreInstance>> resolvedTypeParameters, Stack<MutableMap<String, CoreInstance>> resolvedMultiplicityParameters, VariableContext variableContext, CoreInstance functionExpressionToUseInStack, Profiler profiler, InstantiationContext instantiationContext, ExecutionSupport executionSupport, Context context, ProcessorSupport processorSupport) throws PureExecutionException
+    public CoreInstance execute(ListIterable<? extends CoreInstance> params, Stack<MutableMap<String, CoreInstance>> resolvedTypeParameters, Stack<MutableMap<String, CoreInstance>> resolvedMultiplicityParameters, VariableContext variableContext, MutableStack<CoreInstance> functionExpressionStack, Profiler profiler, InstantiationContext instantiationContext, ExecutionSupport executionSupport, Context context, ProcessorSupport processorSupport) throws PureExecutionException
     {
         // Extract timestamp parameter
         CoreInstance timestampParam = Instance.getValueForMetaPropertyToOneResolved(params.get(0), M3Properties.values, processorSupport);
-        ZonedDateTime timestamp = ((DateCoreInstance)timestampParam).getValue().getZonedDateTime();
+        DateCoreInstance dateCoreInstance = (DateCoreInstance)timestampParam;
+        ZonedDateTime timestamp = ZonedDateTime.parse(dateCoreInstance.getValue().toString());
         
         // Extract time unit parameter
         CoreInstance timeUnitParam = Instance.getValueForMetaPropertyToOneResolved(params.get(1), M3Properties.values, processorSupport);
-        DurationUnit timeUnit = DurationUnit.valueOf(timeUnitParam.getName());
+        String timeUnitName = timeUnitParam.getName();
+        DurationUnit timeUnit = DurationUnit.valueOf(timeUnitName);
         
         // Extract optional slice size parameter (default to 1)
         int sliceSize = 1;
@@ -86,7 +92,7 @@ public class TimeSlice extends Shared
         
         // Create and return result
         DateCoreInstance dateInstance = (DateCoreInstance) repository.newCoreInstance("", processorSupport.package_getByUserPath("meta::pure::metamodel::type::DateTime"), null);
-        dateInstance.setValue(resultInOriginalTimezone);
+        dateInstance.setValue(resultInOriginalTimezone.toString());
         return ValueSpecificationBootstrap.wrapValueSpecification(dateInstance, false, processorSupport);
     }
     
