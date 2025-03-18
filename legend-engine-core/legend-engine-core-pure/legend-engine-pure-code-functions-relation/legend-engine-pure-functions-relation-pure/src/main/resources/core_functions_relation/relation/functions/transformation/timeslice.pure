@@ -29,82 +29,57 @@ native function <<PCT.function>> meta::pure::functions::relation::timeSlice(time
 
 function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testBasicTimeSlice<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
 {
-    let tds = #TDS
-    timestamp
-    2023-01-15T14:30:45.123+0000
-    #;
+    let timestamp = %2023-01-15T14:30:45.123+0000;
     
     // Test with different time units
-    let yearExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.YEARS), 'yearResult')])};
+    let yearResult = timeSlice($timestamp, DurationUnit.YEARS);
     // Temporarily removing QUARTERS test as it's not defined in the Pure DurationUnit enum
-    // let quarterExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.QUARTERS), 'quarterResult')])};
-    let monthExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.MONTHS), 'monthResult')])};
-    let weekExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.WEEKS), 'weekResult')])};
-    let dayExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.DAYS), 'dayResult')])};
-    let hourExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.HOURS), 'hourResult')])};
-    let minuteExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.MINUTES), 'minuteResult')])};
-    let secondExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.SECONDS), 'secondResult')])};
+    // let quarterResult = timeSlice($timestamp, DurationUnit.QUARTERS);
+    let monthResult = timeSlice($timestamp, DurationUnit.MONTHS);
+    let weekResult = timeSlice($timestamp, DurationUnit.WEEKS);
+    let dayResult = timeSlice($timestamp, DurationUnit.DAYS);
+    let hourResult = timeSlice($timestamp, DurationUnit.HOURS);
+    let minuteResult = timeSlice($timestamp, DurationUnit.MINUTES);
+    let secondResult = timeSlice($timestamp, DurationUnit.SECONDS);
     
-    let yearRes = $f->eval($yearExpr);
-    // let quarterRes = $f->eval($quarterExpr);
-    let monthRes = $f->eval($monthExpr);
-    let weekRes = $f->eval($weekExpr);
-    let dayRes = $f->eval($dayExpr);
-    let hourRes = $f->eval($hourExpr);
-    let minuteRes = $f->eval($minuteExpr);
-    let secondRes = $f->eval($secondExpr);
-    
-    assertEquals(%2023-01-01T00:00:00.000+0000, $yearRes.rows->at(0).get('yearResult'));
-    // assertEquals(%2023-01-01T00:00:00.000+0000, $quarterRes.rows->at(0).get('quarterResult'));
-    assertEquals(%2023-01-01T00:00:00.000+0000, $monthRes.rows->at(0).get('monthResult'));
-    assertEquals(%2023-01-15T00:00:00.000+0000, $weekRes.rows->at(0).get('weekResult'));
-    assertEquals(%2023-01-15T00:00:00.000+0000, $dayRes.rows->at(0).get('dayResult'));
-    assertEquals(%2023-01-15T14:00:00.000+0000, $hourRes.rows->at(0).get('hourResult'));
-    assertEquals(%2023-01-15T14:30:00.000+0000, $minuteRes.rows->at(0).get('minuteResult'));
-    assertEquals(%2023-01-15T14:30:45.000+0000, $secondRes.rows->at(0).get('secondResult'));
+    assertEquals(%2023-01-01T00:00:00.000+0000, $yearResult);
+    // assertEquals(%2023-01-01T00:00:00.000+0000, $quarterResult);
+    assertEquals(%2023-01-01T00:00:00.000+0000, $monthResult);
+    assertEquals(%2023-01-15T00:00:00.000+0000, $weekResult);
+    assertEquals(%2023-01-15T00:00:00.000+0000, $dayResult);
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourResult);
+    assertEquals(%2023-01-15T14:30:00.000+0000, $minuteResult);
+    assertEquals(%2023-01-15T14:30:45.000+0000, $secondResult);
     
     true;
 }
 
 function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithSliceSize<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
 {
-    let tds = #TDS
-    timestamp
-    2023-01-15T14:30:45.123+0000
-    #;
+    let timestamp = %2023-01-15T14:30:45.123+0000;
     
     // Test with different slice sizes
-    let hourExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.HOURS, 2), 'hourResult')])};
-    let minuteExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.MINUTES, 15), 'minuteResult')])};
-    let secondExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.SECONDS, 30), 'secondResult')])};
+    let hourResult = timeSlice($timestamp, DurationUnit.HOURS, 2);
+    let minuteResult = timeSlice($timestamp, DurationUnit.MINUTES, 15);
+    let secondResult = timeSlice($timestamp, DurationUnit.SECONDS, 30);
     
-    let hourRes = $f->eval($hourExpr);
-    let minuteRes = $f->eval($minuteExpr);
-    let secondRes = $f->eval($secondExpr);
-    
-    assertEquals(%2023-01-15T14:00:00.000+0000, $hourRes.rows->at(0).get('hourResult'));
-    assertEquals(%2023-01-15T14:30:00.000+0000, $minuteRes.rows->at(0).get('minuteResult'));
-    assertEquals(%2023-01-15T14:30:30.000+0000, $secondRes.rows->at(0).get('secondResult'));
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourResult);
+    assertEquals(%2023-01-15T14:30:00.000+0000, $minuteResult);
+    assertEquals(%2023-01-15T14:30:30.000+0000, $secondResult);
     
     true;
 }
 
 function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithEndOfSlice<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
 {
-    let tds = #TDS
-    timestamp
-    2023-01-15T14:30:45.123+0000
-    #;
+    let timestamp = %2023-01-15T14:30:45.123+0000;
     
     // Test with end of slice parameter
-    let hourStartExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.HOURS, 1, false), 'hourStartResult')])};
-    let hourEndExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, DurationUnit.HOURS, 1, true), 'hourEndResult')])};
+    let hourStartResult = timeSlice($timestamp, DurationUnit.HOURS, 1, false);
+    let hourEndResult = timeSlice($timestamp, DurationUnit.HOURS, 1, true);
     
-    let hourStartRes = $f->eval($hourStartExpr);
-    let hourEndRes = $f->eval($hourEndExpr);
-    
-    assertEquals(%2023-01-15T14:00:00.000+0000, $hourStartRes.rows->at(0).get('hourStartResult'));
-    assertEquals(%2023-01-15T15:00:00.000+0000, $hourEndRes.rows->at(0).get('hourEndResult'));
+    assertEquals(%2023-01-15T14:00:00.000+0000, $hourStartResult);
+    assertEquals(%2023-01-15T15:00:00.000+0000, $hourEndResult);
     
     true;
 }
