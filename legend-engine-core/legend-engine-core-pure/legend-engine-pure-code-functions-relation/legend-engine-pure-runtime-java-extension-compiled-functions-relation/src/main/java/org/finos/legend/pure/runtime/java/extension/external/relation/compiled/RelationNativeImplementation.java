@@ -796,7 +796,7 @@ public class RelationNativeImplementation
     private static org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance timeSlice(org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance timestamp, String timeUnit, int sliceSize, boolean endOfSlice, ExecutionSupport es)
     {
         // Convert DateCoreInstance to ZonedDateTime
-        java.time.ZonedDateTime zonedTimestamp = ((org.finos.legend.pure.m4.coreinstance.primitive.date.DateWithYear)timestamp.getValue()).getZonedDateTime();
+        java.time.ZonedDateTime zonedTimestamp = timestamp.getZonedDateTime();
         
         // Always use UTC as the default timezone
         java.time.ZoneId zoneId = java.time.ZoneId.of("UTC");
@@ -872,7 +872,7 @@ public class RelationNativeImplementation
         // Create a new DateCoreInstance with the result
         org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance resultDate = 
             org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance.createPersistent(
-                ((org.finos.legend.pure.runtime.java.compiled.execution.CompiledExecutionSupport)es).getModelRepository(), 
+                ((org.finos.legend.pure.runtime.java.compiled.execution.CompiledExecutionSupport)es).getRepository(), 
                 finalResult);
         
         return resultDate;
