@@ -17,6 +17,7 @@ package org.finos.legend.engine.plan.dependencies.domain.date;
 public enum DurationUnit
 {
     YEARS,
+    QUARTERS,
     MONTHS,
     WEEKS,
     DAYS,

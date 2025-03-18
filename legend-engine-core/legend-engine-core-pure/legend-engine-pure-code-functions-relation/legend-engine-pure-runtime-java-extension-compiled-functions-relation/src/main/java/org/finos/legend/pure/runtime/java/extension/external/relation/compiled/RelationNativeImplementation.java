@@ -776,4 +776,156 @@ public class RelationNativeImplementation
             return new RowContainer(tds, offset);
         }
     }
+    
+    // TimeSlice implementation
+    public static org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance timeSlice(org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance timestamp, org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.type.Enum timeUnitEnum, ExecutionSupport es)
+    {
+        return timeSlice(timestamp, timeUnitEnum.getName(), 1, false, es);
+    }
+
+    public static org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance timeSlice(org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance timestamp, org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.type.Enum timeUnitEnum, long sliceSize, ExecutionSupport es)
+    {
+        return timeSlice(timestamp, timeUnitEnum.getName(), (int)sliceSize, false, es);
+    }
+
+    public static org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance timeSlice(org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance timestamp, org.finos.legend.pure.m3.coreinstance.meta.pure.metamodel.type.Enum timeUnitEnum, long sliceSize, boolean endOfSlice, ExecutionSupport es)
+    {
+        return timeSlice(timestamp, timeUnitEnum.getName(), (int)sliceSize, endOfSlice, es);
+    }
+
+    private static org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance timeSlice(org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance timestamp, String timeUnit, int sliceSize, boolean endOfSlice, ExecutionSupport es)
+    {
+        // Convert DateCoreInstance to ZonedDateTime
+        java.time.ZonedDateTime zonedTimestamp = timestamp.getValue().getZonedDateTime();
+        
+        // Always use UTC as the default timezone
+        java.time.ZoneId zoneId = java.time.ZoneId.of("UTC");
+        java.time.ZonedDateTime timestampInTimezone = zonedTimestamp.withZoneSameInstant(zoneId);
+        
+        java.time.ZonedDateTime result;
+        
+        switch (timeUnit)
+        {
+            case "SECONDS":
+                result = truncateToSecond(timestampInTimezone, sliceSize);
+                break;
+            case "MINUTES":
+                result = truncateToMinute(timestampInTimezone, sliceSize);
+                break;
+            case "HOURS":
+                result = truncateToHour(timestampInTimezone, sliceSize);
+                break;
+            case "DAYS":
+                result = truncateToDay(timestampInTimezone);
+                break;
+            case "WEEKS":
+                result = truncateToWeek(timestampInTimezone);
+                break;
+            case "MONTHS":
+                result = truncateToMonth(timestampInTimezone);
+                break;
+            case "QUARTERS":
+                result = truncateToQuarter(timestampInTimezone);
+                break;
+            case "YEARS":
+                result = truncateToYear(timestampInTimezone);
+                break;
+            default:
+                throw new RuntimeException("Unsupported time unit: " + timeUnit);
+        }
+        
+        // If end of slice is requested, add the slice size to the result
+        if (endOfSlice)
+        {
+            switch (timeUnit)
+            {
+                case "SECONDS":
+                    result = result.plusSeconds(sliceSize);
+                    break;
+                case "MINUTES":
+                    result = result.plusMinutes(sliceSize);
+                    break;
+                case "HOURS":
+                    result = result.plusHours(sliceSize);
+                    break;
+                case "DAYS":
+                    result = result.plusDays(sliceSize);
+                    break;
+                case "WEEKS":
+                    result = result.plusWeeks(sliceSize);
+                    break;
+                case "MONTHS":
+                    result = result.plusMonths(sliceSize);
+                    break;
+                case "QUARTERS":
+                    result = result.plusMonths(sliceSize * 3);
+                    break;
+                case "YEARS":
+                    result = result.plusYears(sliceSize);
+                    break;
+            }
+        }
+        
+        // Convert result back to original timezone
+        java.time.ZonedDateTime finalResult = result.withZoneSameInstant(zonedTimestamp.getZone());
+        
+        // Create a new DateCoreInstance with the result
+        org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance resultDate = 
+            org.finos.legend.pure.m4.coreinstance.primitive.DateCoreInstance.createPersistent(
+                ((org.finos.legend.pure.runtime.java.compiled.execution.CompiledExecutionSupport)es).getProcessorSupport().getRepository(), 
+                finalResult);
+        
+        return resultDate;
+    }
+
+    private static java.time.ZonedDateTime truncateToSecond(java.time.ZonedDateTime timestamp, int sliceSize)
+    {
+        long seconds = timestamp.getSecond();
+        long truncatedSeconds = (seconds / sliceSize) * sliceSize;
+        return timestamp.withSecond((int)truncatedSeconds).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+    }
+
+    private static java.time.ZonedDateTime truncateToMinute(java.time.ZonedDateTime timestamp, int sliceSize)
+    {
+        long minutes = timestamp.getMinute();
+        long truncatedMinutes = (minutes / sliceSize) * sliceSize;
+        return timestamp.withMinute((int)truncatedMinutes).truncatedTo(java.time.temporal.ChronoUnit.MINUTES);
+    }
+
+    private static java.time.ZonedDateTime truncateToHour(java.time.ZonedDateTime timestamp, int sliceSize)
+    {
+        long hours = timestamp.getHour();
+        long truncatedHours = (hours / sliceSize) * sliceSize;
+        return timestamp.withHour((int)truncatedHours).truncatedTo(java.time.temporal.ChronoUnit.HOURS);
+    }
+
+    private static java.time.ZonedDateTime truncateToDay(java.time.ZonedDateTime timestamp)
+    {
+        return timestamp.truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+    }
+
+    private static java.time.ZonedDateTime truncateToWeek(java.time.ZonedDateTime timestamp)
+    {
+        // Get the day of week (1-7, where 1 is Monday)
+        int dayOfWeek = timestamp.getDayOfWeek().getValue();
+        // Subtract days to get to the start of the week (Monday)
+        return timestamp.minusDays(dayOfWeek - 1).truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+    }
+
+    private static java.time.ZonedDateTime truncateToMonth(java.time.ZonedDateTime timestamp)
+    {
+        return timestamp.withDayOfMonth(1).truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+    }
+
+    private static java.time.ZonedDateTime truncateToQuarter(java.time.ZonedDateTime timestamp)
+    {
+        int month = timestamp.getMonthValue();
+        int quarterStartMonth = ((month - 1) / 3) * 3 + 1;
+        return timestamp.withMonth(quarterStartMonth).withDayOfMonth(1).truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+    }
+
+    private static java.time.ZonedDateTime truncateToYear(java.time.ZonedDateTime timestamp)
+    {
+        return timestamp.withMonth(1).withDayOfMonth(1).truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+    }
 }
