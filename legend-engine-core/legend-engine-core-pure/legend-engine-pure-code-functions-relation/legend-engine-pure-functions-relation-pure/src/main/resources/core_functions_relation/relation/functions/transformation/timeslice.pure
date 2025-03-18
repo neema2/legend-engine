@@ -18,6 +18,7 @@ import meta::pure::functions::date::*;
 import meta::pure::functions::collection::*;
 import meta::pure::functions::relation::*;
 import meta::pure::tds::*;
+import meta::pure::tds::schema::*;
 
 // Basic timeSlice function that takes a timestamp and time unit
 native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:meta::pure::functions::date::DurationUnit[1]):DateTime[1];
