@@ -37,8 +37,7 @@ native function <<PCT.function>> meta::pure::functions::relation::timeSlice(time
 // timeSlice with slice size and end of slice parameters
 native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1], endOfSlice:Boolean[1]):DateTime[1];
 
-// timeSlice with slice size, end of slice, and timezone parameters
-native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1], endOfSlice:Boolean[1], timezone:String[1]):DateTime[1];
+
 ```
 
 ## Step 2: Implement Java Reference Implementations
@@ -123,7 +122,7 @@ public static PureDate timeSlice(PureDate timestamp, String timeUnit, long slice
     return timeSlice(timestamp, timeUnit, sliceSize, endOfSlice, null, es);
 }
 
-public static PureDate timeSlice(PureDate timestamp, String timeUnit, long sliceSize, boolean endOfSlice, String timezone, ExecutionSupport es)
+public static PureDate timeSlice(PureDate timestamp, String timeUnit, long sliceSize, boolean endOfSlice, ExecutionSupport es)
 {
     // Implementation logic here
     // ...
@@ -172,7 +171,7 @@ public class TimeSlice extends Shared
 }
 ```
 
-The interpreted implementation contains the full logic for time slicing with different time units, handling timezones, and supporting the end-of-slice parameter.
+The interpreted implementation contains the full logic for time slicing with different time units and supporting the end-of-slice parameter.
 
 ## Step 3: Implement Database-Specific Versions
 
@@ -193,9 +192,7 @@ dynaFnToSql('timeSlice', $allStates, ^ToSql(format='time_bucket(%s, %s)', transf
 dynaFnToSql('timeSlice', $allStates, ^ToSql(format='%s', transform={p:String[4] | if($p->at(3) == 'true', 
                                                                                 | 'time_bucket(' + constructIntervalFunction('\''+$p->at(2)+' ' + $p->at(1)->toLower() + '\'', '1') + ', ' + $p->at(0) + ') + ' + constructIntervalFunction('\''+$p->at(2)+' ' + $p->at(1)->toLower() + '\'', '1'),
                                                                                 | 'time_bucket(' + constructIntervalFunction('\''+$p->at(2)+' ' + $p->at(1)->toLower() + '\'', '1') + ', ' + $p->at(0) + ')')})),
-dynaFnToSql('timeSlice', $allStates, ^ToSql(format='%s', transform={p:String[5] | if($p->at(3) == 'true', 
-                                                                                | 'time_bucket(' + constructIntervalFunction('\''+$p->at(2)+' ' + $p->at(1)->toLower() + '\'', '1') + ', ' + $p->at(0) + ', timezone => \'' + $p->at(4) + '\') + ' + constructIntervalFunction('\''+$p->at(2)+' ' + $p->at(1)->toLower() + '\'', '1'),
-                                                                                | 'time_bucket(' + constructIntervalFunction('\''+$p->at(2)+' ' + $p->at(1)->toLower() + '\'', '1') + ', ' + $p->at(0) + ', timezone => \'' + $p->at(4) + '\')')})),
+
 ```
 
 This implementation uses DuckDB's native `time_bucket` function, which provides better performance and accuracy than a generic implementation.

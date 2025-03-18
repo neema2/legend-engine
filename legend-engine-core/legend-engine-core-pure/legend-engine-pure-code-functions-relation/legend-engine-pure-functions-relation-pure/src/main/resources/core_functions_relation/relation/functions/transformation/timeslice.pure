@@ -24,8 +24,6 @@ native function <<PCT.function>> meta::pure::functions::relation::timeSlice(time
 // timeSlice with slice size and end of slice parameters
 native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1], endOfSlice:Boolean[1]):DateTime[1];
 
-// timeSlice with slice size, end of slice, and timezone parameters
-native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:String[1], sliceSize:Integer[1], endOfSlice:Boolean[1], timezone:String[1]):DateTime[1];
 
 function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testBasicTimeSlice<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
 {
@@ -103,27 +101,6 @@ function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTim
     
     assertEquals(%2023-01-15T14:00:00.000+0000, $hourStartRes.rows->at(0).get('hourStartResult'));
     assertEquals(%2023-01-15T15:00:00.000+0000, $hourEndRes.rows->at(0).get('hourEndResult'));
-    
-    true;
-}
-
-function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithTimezone<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
-{
-    let tds = #TDS
-                timestamp
-                2023-01-15T14:30:45.123+0000
-            #;
-    
-    // Test with timezone parameter
-    let hourUTCExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'HOUR', 1, false, 'UTC'), 'hourUTCResult')])};
-    let hourESTExpr = {|$tds->extend([col(x|timeSlice($x.timestamp, 'HOUR', 1, false, 'America/New_York'), 'hourESTResult')])};
-    
-    let hourUTCRes = $f->eval($hourUTCExpr);
-    let hourESTRes = $f->eval($hourESTExpr);
-    
-    assertEquals(%2023-01-15T14:00:00.000+0000, $hourUTCRes.rows->at(0).get('hourUTCResult'));
-    // The exact result will depend on timezone conversion, this is a placeholder assertion
-    // assertEquals(%2023-01-15T09:00:00.000-0500, $hourESTRes.rows->at(0).get('hourESTResult'));
     
     true;
 }

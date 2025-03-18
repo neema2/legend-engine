@@ -71,15 +71,10 @@ public class TimeSlice extends Shared
             endOfSlice = Boolean.parseBoolean(endOfSliceParam.getName());
         }
         
-        // Extract optional timezone parameter (default to UTC)
+        // Always use UTC as the default timezone
         ZoneId timezone = ZoneId.of("UTC");
-        if (params.size() > 4)
-        {
-            CoreInstance timezoneParam = Instance.getValueForMetaPropertyToOneResolved(params.get(4), M3Properties.values, processorSupport);
-            timezone = ZoneId.of(timezoneParam.getName());
-        }
         
-        // Convert timestamp to specified timezone
+        // Convert timestamp to UTC timezone
         ZonedDateTime timestampInTimezone = timestamp.withZoneSameInstant(timezone);
         
         // Calculate time slice

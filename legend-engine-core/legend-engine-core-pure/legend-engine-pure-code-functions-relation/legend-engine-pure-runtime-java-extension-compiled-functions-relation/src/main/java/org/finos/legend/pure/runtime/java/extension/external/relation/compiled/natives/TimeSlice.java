@@ -27,8 +27,7 @@ public class TimeSlice extends AbstractNative implements Native
         super(
             "timeSlice_DateTime_1__String_1__DateTime_1_",
             "timeSlice_DateTime_1__String_1__Integer_1__DateTime_1_",
-            "timeSlice_DateTime_1__String_1__Integer_1__Boolean_1__DateTime_1_",
-            "timeSlice_DateTime_1__String_1__Integer_1__Boolean_1__String_1__DateTime_1_"
+            "timeSlice_DateTime_1__String_1__Integer_1__Boolean_1__DateTime_1_"
         );
     }
 
@@ -54,11 +53,7 @@ public class TimeSlice extends AbstractNative implements Native
                 result.append(", ");
                 result.append(transformedParams.get(3));
                 
-                if (transformedParams.size() > 4)
-                {
-                    result.append(", ");
-                    result.append(transformedParams.get(4));
-                }
+
             }
         }
         

@@ -255,7 +255,7 @@ function <<access.private>> meta::relational::functions::sqlQueryToString::snowf
     dynaFnToSql('timeSlice',                  $allStates,            ^ToSql(format='TIME_SLICE(%s, %s)', transform={p:String[2] | $p})),
     dynaFnToSql('timeSlice',                  $allStates,            ^ToSql(format='TIME_SLICE(%s, %s, %s)', transform={p:String[3] | $p})),
     dynaFnToSql('timeSlice',                  $allStates,            ^ToSql(format='TIME_SLICE(%s, %s, %s, %s)', transform={p:String[4] | $p})),
-    dynaFnToSql('timeSlice',                  $allStates,            ^ToSql(format='TIME_SLICE(%s, %s, %s, %s, %s)', transform={p:String[5] | $p}))
+
 
 
 
