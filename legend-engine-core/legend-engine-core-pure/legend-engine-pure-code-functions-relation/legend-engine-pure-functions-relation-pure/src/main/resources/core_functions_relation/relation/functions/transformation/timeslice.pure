@@ -27,78 +27,30 @@ native function <<PCT.function>> meta::pure::functions::relation::timeSlice(time
 // timeSlice with slice size and end of slice parameters
 native function <<PCT.function>> meta::pure::functions::relation::timeSlice(timestamp:DateTime[1], timeUnit:meta::pure::functions::date::DurationUnit[1], sliceSize:Integer[1], endOfSlice:Boolean[1]):DateTime[1];
 
-function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testBasicTimeSlice<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testBasicTimeSlice<Z|y>(f:Function<{Function<{->Z[y]}>[1]->Z[y]}>[1]):Boolean[1]
 {
-    let tds = #TDS
-                timestamp
-                2023-01-15T14:30:45.123+0000
-            #;
-    
-    // Test with different time units
-    let yearExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.YEARS), 'yearResult')])};
-    let monthExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.MONTHS), 'monthResult')])};
-    let weekExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.WEEKS), 'weekResult')])};
-    let dayExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.DAYS), 'dayResult')])};
-    let hourExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.HOURS), 'hourResult')])};
-    let minuteExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.MINUTES), 'minuteResult')])};
-    let secondExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.SECONDS), 'secondResult')])};
-    
-    let yearRes = $f->eval($yearExpr);
-    let monthRes = $f->eval($monthExpr);
-    let weekRes = $f->eval($weekExpr);
-    let dayRes = $f->eval($dayExpr);
-    let hourRes = $f->eval($hourExpr);
-    let minuteRes = $f->eval($minuteExpr);
-    let secondRes = $f->eval($secondExpr);
-    
-    assertEquals(%2023-01-01T00:00:00.000+0000, $yearRes.rows->at(0).get('yearResult'));
-    assertEquals(%2023-01-01T00:00:00.000+0000, $monthRes.rows->at(0).get('monthResult'));
-    assertEquals(%2023-01-15T00:00:00.000+0000, $weekRes.rows->at(0).get('weekResult'));
-    assertEquals(%2023-01-15T00:00:00.000+0000, $dayRes.rows->at(0).get('dayResult'));
-    assertEquals(%2023-01-15T14:00:00.000+0000, $hourRes.rows->at(0).get('hourResult'));
-    assertEquals(%2023-01-15T14:30:00.000+0000, $minuteRes.rows->at(0).get('minuteResult'));
-    assertEquals(%2023-01-15T14:30:45.000+0000, $secondRes.rows->at(0).get('secondResult'));
-    
-    true;
+   assertEq(%2023-01-01T00:00:00.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.YEARS)));
+   assertEq(%2023-01-01T00:00:00.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.MONTHS)));
+   assertEq(%2023-01-15T00:00:00.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.WEEKS)));
+   assertEq(%2023-01-15T00:00:00.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.DAYS)));
+   assertEq(%2023-01-15T14:00:00.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.HOURS)));
+   assertEq(%2023-01-15T14:30:00.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.MINUTES)));
+   assertEq(%2023-01-15T14:30:45.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.SECONDS)));
+   
+   true;
 }
-function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithSliceSize<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithSliceSize<Z|y>(f:Function<{Function<{->Z[y]}>[1]->Z[y]}>[1]):Boolean[1]
 {
-    let tds = #TDS
-                timestamp
-                2023-01-15T14:30:45.123+0000
-            #;
-    
-    // Test with different slice sizes
-    let hourExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.HOURS, 2), 'hourResult')])};
-    let minuteExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.MINUTES, 15), 'minuteResult')])};
-    let secondExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.SECONDS, 30), 'secondResult')])};
-    
-    let hourRes = $f->eval($hourExpr);
-    let minuteRes = $f->eval($minuteExpr);
-    let secondRes = $f->eval($secondExpr);
-    
-    assertEquals(%2023-01-15T14:00:00.000+0000, $hourRes.rows->at(0).get('hourResult'));
-    assertEquals(%2023-01-15T14:30:00.000+0000, $minuteRes.rows->at(0).get('minuteResult'));
-    assertEquals(%2023-01-15T14:30:30.000+0000, $secondRes.rows->at(0).get('secondResult'));
-    
-    true;
+   assertEq(%2023-01-15T14:00:00.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.HOURS, 2)));
+   assertEq(%2023-01-15T14:30:00.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.MINUTES, 15)));
+   assertEq(%2023-01-15T14:30:30.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.SECONDS, 30)));
+   
+   true;
 }
-function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithEndOfSlice<T|m>(f:Function<{Function<{->T[m]}>[1]->T[m]}>[1]):Boolean[1]
+function <<PCT.test>> meta::pure::functions::relation::tests::timeSlice::testTimeSliceWithEndOfSlice<Z|y>(f:Function<{Function<{->Z[y]}>[1]->Z[y]}>[1]):Boolean[1]
 {
-    let tds = #TDS
-                timestamp
-                2023-01-15T14:30:45.123+0000
-            #;
-    
-    // Test with end of slice parameter
-    let hourStartExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.HOURS, 1, false), 'hourStartResult')])};
-    let hourEndExpr = {|$tds->extend([col(x:TDSRow[1]|timeSlice($x.timestamp, DurationUnit.HOURS, 1, true), 'hourEndResult')])};
-    
-    let hourStartRes = $f->eval($hourStartExpr);
-    let hourEndRes = $f->eval($hourEndExpr);
-    
-    assertEquals(%2023-01-15T14:00:00.000+0000, $hourStartRes.rows->at(0).get('hourStartResult'));
-    assertEquals(%2023-01-15T15:00:00.000+0000, $hourEndRes.rows->at(0).get('hourEndResult'));
-    
-    true;
+   assertEq(%2023-01-15T14:00:00.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.HOURS, 1, false)));
+   assertEq(%2023-01-15T15:00:00.000+0000, $f->eval(|timeSlice(%2023-01-15T14:30:45.123+0000, DurationUnit.HOURS, 1, true)));
+   
+   true;
 }
