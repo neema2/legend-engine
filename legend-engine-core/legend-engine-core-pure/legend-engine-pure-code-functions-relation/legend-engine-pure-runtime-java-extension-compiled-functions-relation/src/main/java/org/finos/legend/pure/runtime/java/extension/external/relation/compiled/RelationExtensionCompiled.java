@@ -25,6 +25,7 @@ import org.finos.legend.pure.m3.navigation.M3Properties;
 import org.finos.legend.pure.m3.navigation.ProcessorSupport;
 import org.finos.legend.pure.m3.navigation.generictype.GenericType;
 import org.finos.legend.pure.m4.coreinstance.CoreInstance;
+import org.finos.legend.pure.m4.coreinstance.primitive.date.PureDate;
 import org.finos.legend.pure.runtime.java.compiled.extension.CompiledExtension;
 import org.finos.legend.pure.runtime.java.compiled.generation.ProcessorContext;
 import org.finos.legend.pure.runtime.java.compiled.generation.processors.natives.Native;
@@ -43,7 +44,7 @@ public class RelationExtensionCompiled implements CompiledExtension
     @Override
     public List<Native> getExtraNatives()
     {
-        return Lists.fixedSize.with(
+        org.eclipse.collections.api.list.MutableList<Native> natives = Lists.mutable.with(
                 new Map(),
                 new Limit(),
                 new Size(),
@@ -87,6 +88,12 @@ public class RelationExtensionCompiled implements CompiledExtension
                 new PercentRank(),
                 new Write()
         );
+        
+        natives.add(new TimeSliceNative("timeSlice_DateTime_1__DurationUnit_1__DateTime_1_"));
+        natives.add(new TimeSliceNative("timeSlice_DateTime_1__DurationUnit_1__Integer_1__DateTime_1_"));
+        natives.add(new TimeSliceNative("timeSlice_DateTime_1__DurationUnit_1__Integer_1__Boolean_1__DateTime_1_"));
+        
+        return natives;
     }
 
     @Override
