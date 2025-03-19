@@ -1,0 +1,198 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::relational::functions::sqlQueryToString::*;
+import meta::relational::functions::sqlQueryToString::snowflake::*;
+import meta::relational::metamodel::operation::*;
+import meta::relational::metamodel::relation::*;
+import meta::relational::metamodel::*;
+import meta::relational::runtime::*;
+import meta::pure::test::*;
+
+function <<test.Test>> meta::relational::tests::pivot::testPivotSnowflake():Boolean[1]
+{
+   let query = {|
+      #TDS
+         city, country, year, treePlanted
+         NYC, USA, 2011, 5000
+         NYC, USA, 2000, 5000
+         SAN, USA, 2000, 2000
+         SAN, USA, 2011, 100
+         LDN, UK, 2011, 3000
+         SAN, USA, 2011, 2500
+         NYC, USA, 2000, 10000
+         NYC, USA, 2012, 7600
+         NYC, USA, 2012, 7600
+      #->pivot(~[year], ~[newCol : x | $x.treePlanted : y | $y->plus()])
+   };
+
+   let expected = 'select *' +
+                  ' from (select "root".city as "city", "root".country as "country", "root".year as "year", "root".treePlanted as "treePlanted"' +
+                  ' from (select \'NYC\' as "city", \'USA\' as "country", 2011 as "year", 5000 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2000 as "year", 5000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2000 as "year", 2000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2011 as "year", 100 as "treePlanted"' +
+                  ' union all select \'LDN\' as "city", \'UK\' as "country", 2011 as "year", 3000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2011 as "year", 2500 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2000 as "year", 10000 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2012 as "year", 7600 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2012 as "year", 7600 as "treePlanted") as "root")' +
+                  ' pivot(max("treePlanted") as "newCol" for "year" in (ANY))';
+
+   let result = meta::relational::functions::sqlQueryToString::toSQLString($query, DatabaseType.Snowflake, meta::relational::runtime::DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+   assertEquals($expected, $result);
+}
+
+function <<test.Test>> meta::relational::tests::pivot::testPivotMultipleAggregationsSnowflake():Boolean[1]
+{
+   let query = {|
+      #TDS
+         city, country, year, treePlanted
+         NYC, USA, 2011, 5000
+         NYC, USA, 2000, 5000
+         SAN, USA, 2000, 2000
+         SAN, USA, 2011, 100
+         LDN, UK, 2011, 3000
+         SAN, USA, 2011, 2500
+         NYC, USA, 2000, 10000
+         NYC, USA, 2012, 7600
+         NYC, USA, 2012, 7600
+      #->pivot(~[year], ~[sum : x | $x.treePlanted : y | $y->plus(), count : x | 1 : y | $y->plus()])
+   };
+
+   let expected = 'select *' +
+                  ' from (select "root".city as "city", "root".country as "country", "root".year as "year", "root".treePlanted as "treePlanted"' +
+                  ' from (select \'NYC\' as "city", \'USA\' as "country", 2011 as "year", 5000 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2000 as "year", 5000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2000 as "year", 2000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2011 as "year", 100 as "treePlanted"' +
+                  ' union all select \'LDN\' as "city", \'UK\' as "country", 2011 as "year", 3000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2011 as "year", 2500 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2000 as "year", 10000 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2012 as "year", 7600 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2012 as "year", 7600 as "treePlanted") as "root")' +
+                  ' pivot(max("treePlanted") as "sum", count(*) as "count" for "year" in (ANY))';
+
+   let result = meta::relational::functions::sqlQueryToString::toSQLString($query, DatabaseType.Snowflake, meta::relational::runtime::DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+   assertEquals($expected, $result);
+}
+
+function <<test.Test>> meta::relational::tests::pivot::testPivotWithOrderBySnowflake():Boolean[1]
+{
+   let query = {|
+      #TDS
+         city, country, year, treePlanted
+         NYC, USA, 2011, 5000
+         NYC, USA, 2000, 5000
+         SAN, USA, 2000, 2000
+         SAN, USA, 2011, 100
+         LDN, UK, 2011, 3000
+         SAN, USA, 2011, 2500
+         NYC, USA, 2000, 10000
+         NYC, USA, 2012, 7600
+         NYC, USA, 2012, 7600
+      #->pivot(~[year], ~[newCol : x | $x.treePlanted : y | $y->plus()])
+      #->sort('city', 'asc')
+   };
+
+   let expected = 'select *' +
+                  ' from (select "root".city as "city", "root".country as "country", "root".year as "year", "root".treePlanted as "treePlanted"' +
+                  ' from (select \'NYC\' as "city", \'USA\' as "country", 2011 as "year", 5000 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2000 as "year", 5000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2000 as "year", 2000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2011 as "year", 100 as "treePlanted"' +
+                  ' union all select \'LDN\' as "city", \'UK\' as "country", 2011 as "year", 3000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2011 as "year", 2500 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2000 as "year", 10000 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2012 as "year", 7600 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2012 as "year", 7600 as "treePlanted") as "root")' +
+                  ' pivot(max("treePlanted") as "newCol" for "year" in (ANY))' +
+                  ' order by "city" asc';
+
+   let result = meta::relational::functions::sqlQueryToString::toSQLString($query, DatabaseType.Snowflake, meta::relational::runtime::DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+   assertEquals($expected, $result);
+}
+
+function <<test.Test>> meta::relational::tests::pivot::testPivotWithMultipleOrderBySnowflake():Boolean[1]
+{
+   let query = {|
+      #TDS
+         city, country, year, treePlanted
+         NYC, USA, 2011, 5000
+         NYC, USA, 2000, 5000
+         SAN, USA, 2000, 2000
+         SAN, USA, 2011, 100
+         LDN, UK, 2011, 3000
+         SAN, USA, 2011, 2500
+         NYC, USA, 2000, 10000
+         NYC, USA, 2012, 7600
+         NYC, USA, 2012, 7600
+      #->pivot(~[year], ~[newCol : x | $x.treePlanted : y | $y->plus()])
+      #->sort('city', 'asc')
+      #->sort('country', 'desc')
+   };
+
+   let expected = 'select *' +
+                  ' from (select "root".city as "city", "root".country as "country", "root".year as "year", "root".treePlanted as "treePlanted"' +
+                  ' from (select \'NYC\' as "city", \'USA\' as "country", 2011 as "year", 5000 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2000 as "year", 5000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2000 as "year", 2000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2011 as "year", 100 as "treePlanted"' +
+                  ' union all select \'LDN\' as "city", \'UK\' as "country", 2011 as "year", 3000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2011 as "year", 2500 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2000 as "year", 10000 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2012 as "year", 7600 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2012 as "year", 7600 as "treePlanted") as "root")' +
+                  ' pivot(max("treePlanted") as "newCol" for "year" in (ANY))' +
+                  ' order by "city" asc, "country" desc';
+
+   let result = meta::relational::functions::sqlQueryToString::toSQLString($query, DatabaseType.Snowflake, meta::relational::runtime::DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+   assertEquals($expected, $result);
+}
+
+function <<test.Test>> meta::relational::tests::pivot::testPivotMultipleAggregationsWithOrderBySnowflake():Boolean[1]
+{
+   let query = {|
+      #TDS
+         city, country, year, treePlanted
+         NYC, USA, 2011, 5000
+         NYC, USA, 2000, 5000
+         SAN, USA, 2000, 2000
+         SAN, USA, 2011, 100
+         LDN, UK, 2011, 3000
+         SAN, USA, 2011, 2500
+         NYC, USA, 2000, 10000
+         NYC, USA, 2012, 7600
+         NYC, USA, 2012, 7600
+      #->pivot(~[year], ~[sum : x | $x.treePlanted : y | $y->plus(), count : x | 1 : y | $y->plus()])
+      #->sort('country', 'desc')
+   };
+
+   let expected = 'select *' +
+                  ' from (select "root".city as "city", "root".country as "country", "root".year as "year", "root".treePlanted as "treePlanted"' +
+                  ' from (select \'NYC\' as "city", \'USA\' as "country", 2011 as "year", 5000 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2000 as "year", 5000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2000 as "year", 2000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2011 as "year", 100 as "treePlanted"' +
+                  ' union all select \'LDN\' as "city", \'UK\' as "country", 2011 as "year", 3000 as "treePlanted"' +
+                  ' union all select \'SAN\' as "city", \'USA\' as "country", 2011 as "year", 2500 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2000 as "year", 10000 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2012 as "year", 7600 as "treePlanted"' +
+                  ' union all select \'NYC\' as "city", \'USA\' as "country", 2012 as "year", 7600 as "treePlanted") as "root")' +
+                  ' pivot(max("treePlanted") as "sum", count(*) as "count" for "year" in (ANY))' +
+                  ' order by "country" desc';
+
+   let result = meta::relational::functions::sqlQueryToString::toSQLString($query, DatabaseType.Snowflake, meta::relational::runtime::DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+   assertEquals($expected, $result);
+}
