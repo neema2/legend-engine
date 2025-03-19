@@ -119,7 +119,10 @@ public class RelationExtensionInterpreted extends BaseInterpretedExtension
                 Tuples.pair("cumulativeDistribution_Relation_1___Window_1__T_1__Float_1_", CumulativeDistribution::new),
                 Tuples.pair("asOfJoin_Relation_1__Relation_1__Function_1__Function_1__Relation_1_", AsOfJoin::new),
                 Tuples.pair("asOfJoin_Relation_1__Relation_1__Function_1__Relation_1_", AsOfJoin::new),
-                Tuples.pair("write_Relation_1__RelationElementAccessor_1__Integer_1_", Write::new)
+                Tuples.pair("write_Relation_1__RelationElementAccessor_1__Integer_1_", Write::new),
+                Tuples.pair("timeSlice_DateTime_1__DurationUnit_1__DateTime_1_", TimeSlice::new),
+                Tuples.pair("timeSlice_DateTime_1__DurationUnit_1__Integer_1__DateTime_1_", TimeSlice::new),
+                Tuples.pair("timeSlice_DateTime_1__DurationUnit_1__Integer_1__Boolean_1__DateTime_1_", TimeSlice::new)
         );
     }
 

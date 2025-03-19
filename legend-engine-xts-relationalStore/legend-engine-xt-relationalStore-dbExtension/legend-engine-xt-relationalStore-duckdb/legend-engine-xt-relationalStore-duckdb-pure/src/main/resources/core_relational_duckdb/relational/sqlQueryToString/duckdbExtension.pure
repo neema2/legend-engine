@@ -228,6 +228,12 @@ function <<access.private>> meta::relational::functions::sqlQueryToString::duckD
     dynaFnToSql('year',                   $allStates,            ^ToSql(format='year(%s)')),
     dynaFnToSql('jaroWinklerSimilarity',  $allStates,            ^ToSql(format='jaro_winkler_similarity(%s, %s)')),
     dynaFnToSql('levenshteinDistance',    $allStates,            ^ToSql(format='levenshtein(%s, %s)')),
+    dynaFnToSql('timeSlice',              $allStates,            ^ToSql(format='time_bucket(%s, %s, TIMESTAMP \'1970-01-01 00:00:00\')', transform={p:String[2] | constructIntervalFunction('\'1 ' + $p->at(1)->mapToDBUnitType() + '\'', '1') + ', ' + $p->at(0)})),
+    dynaFnToSql('timeSlice',              $allStates,            ^ToSql(format='time_bucket(%s, %s, TIMESTAMP \'1970-01-01 00:00:00\')', transform={p:String[3] | constructIntervalFunction('\''+$p->at(2)+' ' + $p->at(1)->mapToDBUnitType() + '\'', '1') + ', ' + $p->at(0)})),
+    dynaFnToSql('timeSlice',              $allStates,            ^ToSql(format='%s', transform={p:String[4] | if($p->at(3) == 'true', 
+                                                                                                                | 'time_bucket(' + constructIntervalFunction('\''+$p->at(2)+' ' + $p->at(1)->mapToDBUnitType() + '\'', '1') + ', ' + $p->at(0) + ', TIMESTAMP \'1970-01-01 00:00:00\') + ' + constructIntervalFunction('\''+$p->at(2)+' ' + $p->at(1)->mapToDBUnitType() + '\'', '1'),
+                                                                                                                | 'time_bucket(' + constructIntervalFunction('\''+$p->at(2)+' ' + $p->at(1)->mapToDBUnitType() + '\'', '1') + ', ' + $p->at(0) + ', TIMESTAMP \'1970-01-01 00:00:00\')')})),
+
     dynaFnToSql('varianceSample',         $allStates,            ^ToSql(format='%s', transform={p:String[*] | if($p->size() == 1,|'var_samp('+$p->toOne()+')',|'list_var_samp('+$p->joinStrings('[',',',']')+')'); })),
     dynaFnToSql('variancePopulation',     $allStates,            ^ToSql(format='%s', transform={p:String[*] | if($p->size() == 1,|'var_pop('+$p->toOne()+')',|'list_var_pop('+$p->joinStrings('[',',',']')+')'); })),
     dynaFnToSql('variance',               $allStates,            ^ToSql(format='%s', transform={p:String[*]| if ($p->last() == 'true', | 'list_var_samp', |'list_var_pop') + '('+$p->init()->joinStrings('[', ',', ']')+')'}))
@@ -253,8 +259,8 @@ function <<access.private>> meta::relational::functions::sqlQueryToString::duckD
 
 function <<access.private>> meta::relational::functions::sqlQueryToString::duckDB::processDateDiffDurationUnitForDuckDB(durationUnit:String[1]):String[1]
 {
-   let durationEnumNames = [DurationUnit.YEARS,DurationUnit.MONTHS,DurationUnit.WEEKS,DurationUnit.DAYS,DurationUnit.HOURS,DurationUnit.MINUTES,DurationUnit.SECONDS,DurationUnit.MILLISECONDS]->map(e|$e->toString());
-   let durationDbNames = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond'];
+   let durationEnumNames = [DurationUnit.YEARS,DurationUnit.QUARTERS,DurationUnit.MONTHS,DurationUnit.WEEKS,DurationUnit.DAYS,DurationUnit.HOURS,DurationUnit.MINUTES,DurationUnit.SECONDS,DurationUnit.MILLISECONDS]->map(e|$e->toString());
+   let durationDbNames = ['year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond'];
    $durationEnumNames->zip($durationDbNames)->filter(h | $h.first == $durationUnit).second->toOne();
 }
 
@@ -264,6 +270,7 @@ function meta::relational::functions::sqlQueryToString::duckDB::constructInterva
 
    let interval_func= [
       pair(DurationUnit.YEARS->toString(), 'to_years'),
+      pair(DurationUnit.QUARTERS->toString(), 'to_months'),
       pair(DurationUnit.MONTHS->toString(), 'to_months'),
       pair(DurationUnit.WEEKS->toString(), 'to_weeks'),
       pair(DurationUnit.DAYS->toString(), 'to_days'),
