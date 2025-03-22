@@ -1,0 +1,87 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::relational::functions::sqlstring::*;
+import meta::relational::runtime::*;
+import meta::external::store::relational::runtime::*;
+import meta::relational::tests::*;
+import meta::external::store::relational::tests::*;
+import meta::pure::functions::math::olap::*;
+import meta::relational::tests::model::simple::*;
+import meta::pure::functions::relation::*;
+
+function <<test.Test>> meta::relational::tests::tds::snowflake::testWindowFrameRowsUnboundedPrecedingCurrentRowSnowflake():Boolean[1]
+{
+  let func = {|
+    Person.all()
+      ->project([
+          col(p|$p.lastName, 'lastName'),
+          col(window(p|$p.firstName, sortAsc(p|$p.lastName), rows(unbounded(), 0), func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
+      ])
+  };
+  let result = toSQLString($func, simpleRelationalMappingInc, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+  assertEquals('select "root".LASTNAME as "lastName", avg(1.0 * "root".AGE) OVER (Partition By "root".FIRSTNAME Order By "root".LASTNAME ASC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as "ageAverageWindow" from personTable as "root"', $result);
+}
+
+function <<test.Test>> meta::relational::tests::tds::snowflake::testWindowFrameRangeUnboundedPrecedingUnboundedFollowingSnowflake():Boolean[1]
+{
+  let func = {|
+    Person.all()
+      ->project([
+          col(p|$p.lastName, 'lastName'),
+          col(window(p|$p.firstName, sortAsc(p|$p.lastName), _range(unbounded(), unbounded()), func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
+      ])
+  };
+  let result = toSQLString($func, simpleRelationalMappingInc, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+  assertEquals('select "root".LASTNAME as "lastName", avg(1.0 * "root".AGE) OVER (Partition By "root".FIRSTNAME Order By "root".LASTNAME ASC RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as "ageAverageWindow" from personTable as "root"', $result);
+}
+
+function <<test.Test>> meta::relational::tests::tds::snowflake::testWindowFrameRowsCurrentRowFollowingSnowflake():Boolean[1]
+{
+  let func = {|
+    Person.all()
+      ->project([
+          col(p|$p.lastName, 'lastName'),
+          col(window(p|$p.firstName, sortAsc(p|$p.lastName), rows(0, 3), func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
+      ])
+  };
+  let result = toSQLString($func, simpleRelationalMappingInc, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+  assertEquals('select "root".LASTNAME as "lastName", avg(1.0 * "root".AGE) OVER (Partition By "root".FIRSTNAME Order By "root".LASTNAME ASC ROWS BETWEEN CURRENT ROW AND 3 FOLLOWING) as "ageAverageWindow" from personTable as "root"', $result);
+}
+
+function <<test.Test>> meta::relational::tests::tds::snowflake::testWindowFrameRangePrecedingCurrentRowSnowflake():Boolean[1]
+{
+  let func = {|
+    Person.all()
+      ->project([
+          col(p|$p.lastName, 'lastName'),
+          col(window(p|$p.firstName, sortAsc(p|$p.lastName), _range(2, 0), func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
+      ])
+  };
+  let result = toSQLString($func, simpleRelationalMappingInc, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+  assertEquals('select "root".LASTNAME as "lastName", avg(1.0 * "root".AGE) OVER (Partition By "root".FIRSTNAME Order By "root".LASTNAME ASC RANGE BETWEEN 2 PRECEDING AND CURRENT ROW) as "ageAverageWindow" from personTable as "root"', $result);
+}
+
+function <<test.Test>> meta::relational::tests::tds::snowflake::testWindowFrameRowsPrecedingFollowingSnowflake():Boolean[1]
+{
+  let func = {|
+    Person.all()
+      ->project([
+          col(p|$p.lastName, 'lastName'),
+          col(window(p|$p.firstName, sortAsc(p|$p.lastName), rows(1, 1), func(p|$p.age->toOne(), y|$y->average())), 'ageAverageWindow')
+      ])
+  };
+  let result = toSQLString($func, simpleRelationalMappingInc, DatabaseType.Snowflake, meta::relational::extension::relationalExtensions());
+  assertEquals('select "root".LASTNAME as "lastName", avg(1.0 * "root".AGE) OVER (Partition By "root".FIRSTNAME Order By "root".LASTNAME ASC ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) as "ageAverageWindow" from personTable as "root"', $result);
+}
