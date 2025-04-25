@@ -204,6 +204,34 @@ public class RelationNativeImplementation
         }
         return new TDSContainer((TestTDSCompiled) result, ps);
     }
+    
+    public static <T, V> Relation<? extends Object> lateralJoin(Relation<? extends T> rel1, Relation<? extends V> rel2, Object joinKind, Function3 joinFunction, ExecutionSupport es)
+    {
+        ProcessorSupport ps = ((CompiledExecutionSupport) es).getProcessorSupport();
+        
+        TestTDS tds1 = RelationNativeImplementation.getTDS(rel1);
+        TestTDS tds2 = RelationNativeImplementation.getTDS(rel2);
+        
+        boolean isLeftJoin = joinKind instanceof Enum && "LEFT".equals(((Enum) joinKind)._name());
+        
+        TestTDS result = tds1.join(tds2).newEmptyTDS();
+        for (int i = 0; i < tds1.getRowCount(); i++)
+        {
+            TestTDS oneRow = tds1.slice(i, i + 1);
+            TestTDS exploded = oneRow.join(tds2);
+            TestTDS res = filterTwoParam(exploded, joinFunction, es);
+            
+            if (res.getRowCount() == 0 && isLeftJoin)
+            {
+                result = result.concatenate(oneRow.join(tds2.newNullTDS()));
+            }
+            else if (res.getRowCount() > 0)
+            {
+                result = result.concatenate(res);
+            }
+        }
+        return new TDSContainer((TestTDSCompiled) result, ps);
+    }
 
     private static TestTDS filterTwoParam(TestTDS tds, Function3 matchFunction, ExecutionSupport es)
     {

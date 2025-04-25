@@ -1,0 +1,85 @@
+// Copyright 2024 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import meta::relational::functions::pureToSqlQuery::*;
+import meta::relational::metamodel::operation::*;
+import meta::relational::metamodel::relation::*;
+import meta::relational::metamodel::*;
+import meta::pure::metamodel::relation::*;
+import meta::pure::functions::relation::*;
+
+function meta::relational::functions::pureToSqlQuery::processTdsLateralJoin(f:FunctionExpression[1], currentPropertyMapping:PropertyMapping[*], operation:SelectWithCursor[1], vars:Map<VariableExpression, ValueSpecification>[1], state:State[1], joinType:JoinType[1], nodeId:String[1], aggFromMap:List<ColumnGroup>[1], context:DebugContext[1], extensions:Extension[*]):RelationalOperationElement[1]
+{
+   let swc1 = processValueSpecification($f.parametersValues->at(0), $currentPropertyMapping, $operation, $vars, $state, $joinType, $nodeId, $aggFromMap, $context, $extensions)->toOne()->cast(@SelectWithCursor);
+   let swc2 = processValueSpecification($f.parametersValues->at(1), $currentPropertyMapping, $operation, $vars, $state, $joinType, $nodeId, $aggFromMap, $context, $extensions)->toOne()->cast(@SelectWithCursor);
+   let query2 = $swc2.select->pushExtraFilteringOperation($extensions);
+
+   let type = $f->instanceValuesAtParameter(2, $vars, $state.inScopeVars)
+               ->match([
+                   j: JoinType[1] | $j,
+                   k: JoinKind[1] | $k,
+                   a: Any[1] | let jt = $a->cast(@FunctionExpression).parametersValues;
+                               extractEnumValue($jt->at(0)->cast(@InstanceValue).values->toOne()->cast(@Enumeration<Any>), $jt->at(1)->cast(@InstanceValue).values->cast(@String)->toOne());
+               ]);
+
+   let query1WithFilter = $swc1.select->pushExtraFilteringOperation($extensions);
+   let Q1isVarSetPlaceHolder = $query1WithFilter.data.alias.relationalElement->toOne()->instanceOf(VarSetPlaceHolder);
+   let query1 = if($Q1isVarSetPlaceHolder,| $query1WithFilter.data.alias.relationalElement->cast(@VarSetPlaceHolder)->toOne(),| $query1WithFilter);
+   let leftTableAlias = ^TableAlias(name='"joinleft_"'+$nodeId, relationalElement=$query1);
+
+   let leftAliasWithColumns = createAliasWithColumns($query1,'"joinleft_"'+$nodeId);
+   let rightAlias = ^TableAlias(name='"joinright_"'+$nodeId, relationalElement=$query2);
+   let aliases2 = $rightAlias->switchAliasForColumns($query2.columns);
+   assertEmpty($leftAliasWithColumns->filter(n|$n.name->in($aliases2->map(a|$a.name))), 'Duplicate column names between input TDS are not supported');
+
+   let paths = $query1->cast(@RelationalTds).paths->concatenate($query2->cast(@RelationalTds).paths);
+
+   let leftAliasForJoinNode = if($Q1isVarSetPlaceHolder,
+                               | ^TableAlias(name='"joinleft_"'+$nodeId, relationalElement=^$query1(columns=[])),
+                               | $leftTableAlias
+                             );
+
+   // For LATERAL join, we always use a '1 = 1' condition
+   let operation = ^DynaFunction(name = 'equal', parameters = [^Literal(value=1), ^Literal(value=1)]);
+
+   let join = ^Join(
+               name='tdsLateralJoin',
+               target=$rightAlias,
+               aliases=[pair($leftAliasForJoinNode,$rightAlias),pair($rightAlias,$leftAliasForJoinNode)],
+               operation=$operation
+             );
+
+   let child = ^JoinTreeNode(
+                 alias=$rightAlias, 
+                 join=$join, 
+                 joinType=if($type->instanceOf(JoinType),|$type->cast(@JoinType),|meta::relational::functions::pureToSqlQuery::joinKindToType($type->cast(@JoinKind))), 
+                 database=^Database(), 
+                 joinName='tdsLateralJoin',
+                 lateral=true
+               );
+               
+   let root = ^RootJoinTreeNode(alias=$leftAliasForJoinNode, childrenData=$child);
+   let newAlias = ^TableAlias(name = 'tdsJoined_' + $nodeId, relationalElement=^TdsSelectSqlQuery(data=$root, columns=if($Q1isVarSetPlaceHolder,|[],|$leftAliasWithColumns->concatenate($aliases2))));
+   let newData = ^RootJoinTreeNode(alias = $newAlias);
+
+   ^$swc1(select = ^TdsSelectSqlQuery(
+                                  data = $newData,
+                                  columns = $leftAliasWithColumns->concatenate($aliases2)->map(cl| let als = $cl->cast(@Alias);
+                                                                                                  let col = $als.relationalElement->cast(@TableAliasColumn).column;
+                                                                                                  ^Alias(name=if($Q1isVarSetPlaceHolder,|$als.name->addQuotesIfNoQuotes(),|$als.name), relationalElement=^TableAliasColumn(alias=$newAlias, column=^$col(name=$als.name)));),
+                                  paths = $paths
+                   ),
+        currentTreeNode = $swc1->concatenate($swc2)->filter(q|$q.currentTreeNode->isNotEmpty())->map(q|$q.currentTreeNode->toOne()->findNode($q.select.data->toOne(), $newData))->first()
+   );
+}
