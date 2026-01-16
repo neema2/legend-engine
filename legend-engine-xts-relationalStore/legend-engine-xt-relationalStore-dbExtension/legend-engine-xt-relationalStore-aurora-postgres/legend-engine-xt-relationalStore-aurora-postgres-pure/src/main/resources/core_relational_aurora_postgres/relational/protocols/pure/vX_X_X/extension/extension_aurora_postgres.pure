@@ -1,0 +1,79 @@
+// Copyright 2025 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+###Pure
+import meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::legend::specification::*;
+import meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::legend::authentication::*;
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::legend::specification::AuroraPostgresDatasourceSpecification 
+    extends meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::alloy::specification::DatasourceSpecification
+{
+    host: String[1];
+    port: Integer[1];
+    databaseName: String[1];
+    region: String[1];
+    clusterIdentifier: String[0..1];
+}
+
+Class meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::legend::authentication::AWSIAMDatabaseAuthenticationStrategy 
+    extends meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::alloy::authentication::AuthenticationStrategy
+{
+    databaseUsername: String[1];
+}
+
+function <<meta::protocols::pure::vX_X_X::extension::RelationalModule.SerializerExtension>>
+meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::auroraPostgresSerializerExtension(): meta::protocols::pure::vX_X_X::extension::RelationalModuleSerializerExtension[1]
+{
+    ^meta::protocols::pure::vX_X_X::extension::RelationalModuleSerializerExtension(
+        module = 'aurora_postgres',
+        transfers_connection_transformDatasourceSpecification = [
+            a:meta::pure::legend::connections::legend::specification::AuroraPostgresDatasourceSpecification[1] |
+                ^meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::legend::specification::AuroraPostgresDatasourceSpecification(
+                    _type = 'auroraPostgres',
+                    host = $a.host,
+                    port = $a.port,
+                    databaseName = $a.databaseName,
+                    region = $a.region,
+                    clusterIdentifier = $a.clusterIdentifier
+                )
+        ],
+        transfers_connection_transformAuthenticationStrategy = [
+            a:meta::pure::legend::connections::legend::authentication::AWSIAMDatabaseAuthenticationStrategy[1] |
+                ^meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::legend::authentication::AWSIAMDatabaseAuthenticationStrategy(
+                    _type = 'awsIAMDatabase',
+                    databaseUsername = $a.databaseUsername
+                )
+        ],
+        reverse_transfers_typeLookups = [
+            pair('auroraPostgres', 'AuroraPostgresDatasourceSpecification'),
+            pair('awsIAMDatabase', 'AWSIAMDatabaseAuthenticationStrategy')
+        ],
+        reverse_transfers_connection_transformDatasourceSpecification = [
+            a:meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::legend::specification::AuroraPostgresDatasourceSpecification[1] |
+                ^meta::pure::legend::connections::legend::specification::AuroraPostgresDatasourceSpecification(
+                    host = $a.host,
+                    port = $a.port,
+                    databaseName = $a.databaseName,
+                    region = $a.region,
+                    clusterIdentifier = $a.clusterIdentifier
+                )
+        ],
+        reverse_transfers_connection_transformAuthenticationStrategy = [
+            a:meta::protocols::pure::vX_X_X::metamodel::store::relational::connection::legend::authentication::AWSIAMDatabaseAuthenticationStrategy[1] |
+                ^meta::pure::legend::connections::legend::authentication::AWSIAMDatabaseAuthenticationStrategy(
+                    databaseUsername = $a.databaseUsername
+                )
+        ]
+    )
+}
