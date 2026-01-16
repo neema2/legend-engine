@@ -1,0 +1,43 @@
+// Copyright 2025 Goldman Sachs
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * Datasource specification for AWS Aurora PostgreSQL databases.
+ * 
+ * Aurora PostgreSQL is wire-compatible with PostgreSQL but requires
+ * Aurora-specific connection parameters for IAM authentication.
+ */
+Class {doc.doc = 'Specification for AWS Aurora PostgreSQL database'}
+meta::pure::legend::connections::legend::specification::AuroraPostgresDatasourceSpecification 
+    extends meta::pure::alloy::connections::alloy::specification::DatasourceSpecification
+{
+    <<equality.Key>> {doc.doc = 'Aurora cluster endpoint hostname'} host: String[1];
+    <<equality.Key>> {doc.doc = 'Database port (default 5432)'} port: Integer[1];
+    <<equality.Key>> {doc.doc = 'Database name'} databaseName: String[1];
+    <<equality.Key>> {doc.doc = 'AWS region for IAM authentication'} region: String[1];
+    <<equality.Key>> {doc.doc = 'Optional Aurora cluster identifier'} clusterIdentifier: String[0..1];
+}
+
+/**
+ * Authentication strategy for AWS IAM Database Authentication.
+ * 
+ * This strategy uses AWS IAM credentials to generate short-lived authentication
+ * tokens that are used as passwords when connecting to Aurora PostgreSQL databases.
+ */
+Class {doc.doc = 'AWS IAM Database Authentication Strategy'}
+meta::pure::legend::connections::legend::authentication::AWSIAMDatabaseAuthenticationStrategy 
+    extends meta::pure::alloy::connections::alloy::authentication::AuthenticationStrategy
+{
+    <<equality.Key>> {doc.doc = 'Database username configured for IAM authentication'} databaseUsername: String[1];
+}

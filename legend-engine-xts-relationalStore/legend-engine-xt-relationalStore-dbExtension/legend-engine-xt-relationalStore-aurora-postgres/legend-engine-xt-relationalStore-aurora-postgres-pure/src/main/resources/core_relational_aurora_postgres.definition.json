@@ -1,0 +1,7 @@
+{
+  "name": "core_relational_aurora_postgres",
+  "pattern": "(meta::relational::functions|meta::pure::legend::connections|meta::protocols::pure::vX_X_X::transformation::fromPureGraph::connection::auroraPostgres)",
+  "dependencies": [
+    "core_relational"
+  ]
+}
